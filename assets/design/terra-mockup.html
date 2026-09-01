@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terra — App Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C1A15;
+    --paper:#F6F0E2;
+    --paper-warm:#EFE4CB;
+    --clay:#A8432A;
+    --clay-pale:#F3DBCE;
+    --gold:#D79A34;
+    --gold-pale:#F5E4C4;
+    --moss:#3F6B4A;
+    --moss-pale:#DCE6D5;
+    --line:#E3D6BB;
+    --shell:#20241F;
+    --shell-2:#2B3128;
+    --muted:#8C8268;
+    --radius-lg:26px;
+    --radius-md:16px;
+    --radius-sm:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:#EAE3D0;
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--ink);
+    padding:52px 20px 90px;
+  }
+  svg.icon{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+
+  .intro{max-width:760px;margin:0 auto 52px;}
+  .intro .tag{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:0.8rem;color:var(--moss);
+    background:var(--moss-pale);
+    padding:5px 13px;border-radius:100px;margin-bottom:16px;font-weight:600;
+  }
+  .intro h1{
+    font-family:'Fraunces', serif;font-weight:700;
+    font-size:clamp(2.4rem,5.5vw,3.6rem);
+    line-height:0.98;margin:0 0 14px;letter-spacing:-0.015em;
+    color:var(--ink);
+  }
+  .intro p{font-size:1.05rem;line-height:1.6;color:#55503F;max-width:58ch;margin:0;}
+
+  .group-label{
+    max-width:1320px;margin:0 auto 18px;
+    font-family:'Fraunces', serif;font-size:1.2rem;font-weight:600;
+    color:var(--ink);
+    display:flex;align-items:baseline;gap:10px;
+  }
+  .group-label span{font-size:0.78rem;font-weight:500;color:var(--muted);font-family:'Space Grotesk',sans-serif;}
+  .phones{
+    display:flex;flex-wrap:wrap;gap:34px;justify-content:center;
+    max-width:1320px;margin:0 auto 60px;
+  }
+  .phone-block{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .phone-label{font-size:0.92rem;font-weight:600;}
+  .phone-sub{font-size:0.78rem;color:var(--muted);text-align:center;max-width:250px;line-height:1.4;}
+
+  .phone{
+    width:272px;height:568px;
+    background:var(--paper);
+    border-radius:42px;
+    border:9px solid var(--ink);
+    box-shadow:0 18px 40px rgba(28,26,21,0.18);
+    overflow:hidden;position:relative;
+    display:flex;flex-direction:column;
+  }
+  .notch{
+    position:absolute;top:9px;left:50%;transform:translateX(-50%);
+    width:90px;height:20px;background:var(--ink);border-radius:0 0 14px 14px;z-index:5;
+  }
+  .status-bar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 20px 4px;font-size:0.7rem;font-weight:600;color:var(--ink);
+  }
+  .status-bar .icons{display:flex;gap:5px;align-items:center;font-size:0.95rem;}
+  .screen{flex:1;padding:12px 16px 8px;overflow:hidden;display:flex;flex-direction:column;gap:12px;}
+  .content-scroll{flex:1;display:flex;flex-direction:column;gap:12px;overflow:hidden;}
+
+  .topline{display:flex;justify-content:space-between;align-items:flex-start;}
+  .greeting h2{font-family:'Fraunces', serif;font-weight:600;font-size:1.3rem;margin:0;}
+  .greeting p{margin:3px 0 0;font-size:0.74rem;color:var(--muted);}
+  .icon-btn{
+    width:32px;height:32px;border-radius:10px;background:var(--paper-warm);
+    display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:1rem;
+  }
+  .offline-strip{
+    display:flex;align-items:center;gap:7px;
+    background:var(--shell);color:var(--paper);
+    font-size:0.68rem;font-weight:600;
+    padding:7px 12px;border-radius:100px;width:fit-content;
+  }
+  .offline-strip .dot-live{width:6px;height:6px;border-radius:50%;background:var(--gold);}
+
+  /* module cards - home */
+  .module-card{
+    background:var(--paper-warm);
+    border-radius:var(--radius-md);
+    padding:13px 14px;display:flex;align-items:center;gap:12px;
+  }
+  .module-card.a{border-radius:22px 10px 22px 10px;}
+  .module-card.b{border-radius:10px 22px 10px 22px;}
+  .module-card.c{border-radius:16px;}
+  .m-icon{
+    width:38px;height:38px;border-radius:11px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:1.15rem;
+  }
+  .m-icon.leaf{background:var(--moss-pale);color:var(--moss);}
+  .m-icon.crate{background:var(--gold-pale);color:#8A5F1B;}
+  .m-icon.globe{background:var(--clay-pale);color:var(--clay);}
+  .m-title{font-size:0.86rem;font-weight:600;margin:0;}
+  .m-meta{font-size:0.7rem;color:var(--muted);margin:2px 0 0;}
+  .m-stat{margin-left:auto;font-family:'Fraunces', serif;font-weight:700;font-size:1.15rem;}
+
+  .activity-row{display:flex;align-items:center;gap:10px;font-size:0.72rem;color:#55503F;padding:6px 0;border-top:1px solid var(--line);}
+  .activity-row .dot{width:6px;height:6px;border-radius:50%;background:var(--moss);flex-shrink:0;}
+  .activity-row time{margin-left:auto;color:var(--muted);}
+
+  /* bottom nav */
+  .tabbar{
+    display:flex;justify-content:space-around;align-items:center;
+    background:var(--shell);padding:12px 6px 10px;
+  }
+  .tab{display:flex;flex-direction:column;align-items:center;gap:4px;color:#8B9187;font-size:1.05rem;}
+  .tab.active{color:var(--gold);}
+  .tab span{font-size:0.6rem;font-weight:600;color:inherit;}
+  .home-indicator{height:5px;width:110px;background:var(--ink);border-radius:100px;margin:8px auto 6px;}
+
+  /* Agriculture screen */
+  .photo-frame{
+    height:150px;border-radius:var(--radius-lg);
+    background:repeating-linear-gradient(135deg, var(--moss-pale), var(--moss-pale) 10px, #CFDDC5 10px, #CFDDC5 20px);
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .photo-frame .cam{
+    width:52px;height:52px;border-radius:50%;background:var(--paper);
+    display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--moss);
+    box-shadow:0 6px 16px rgba(28,26,21,0.2);
+  }
+  .result-card{background:var(--paper-warm);border-radius:var(--radius-md);padding:15px;}
+  .result-tag{
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:0.66rem;font-weight:700;color:var(--clay);background:var(--clay-pale);
+    padding:4px 10px;border-radius:100px;margin-bottom:9px;
+  }
+  .result-card h3{font-family:'Fraunces', serif;font-size:1.05rem;margin:0 0 6px;font-weight:600;}
+  .result-card p{font-size:0.76rem;line-height:1.5;color:#55503F;margin:0 0 11px;}
+  .chip-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{font-size:0.66rem;padding:4px 11px;border-radius:100px;border:1px solid var(--line);color:var(--muted);}
+  .chip.active{background:var(--moss);color:var(--paper);border-color:var(--moss);}
+  .cta{
+    background:var(--clay);color:var(--paper);text-align:center;padding:13px;
+    border-radius:var(--radius-sm);font-size:0.82rem;font-weight:700;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+  }
+
+  /* Ressources screen */
+  .list-card{background:var(--paper-warm);border-radius:var(--radius-md);padding:4px 14px;}
+  .task-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .task-row:last-child{border:none;}
+  .task-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .task-dot.full{background:var(--clay);}
+  .task-dot.mid{background:var(--gold);}
+  .task-dot.ok{background:var(--moss);}
+  .task-name{font-size:0.8rem;font-weight:600;margin:0;}
+  .task-loc{font-size:0.68rem;color:var(--muted);margin:2px 0 0;}
+  .task-badge{margin-left:auto;font-size:0.66rem;font-weight:600;color:var(--muted);}
+  .report-btn{
+    border:1.5px dashed #C9BD9C;border-radius:var(--radius-sm);
+    text-align:center;padding:12px;font-size:0.76rem;font-weight:700;color:var(--moss);
+    display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+
+  /* Ecosystem screen */
+  .chart-card{background:var(--paper-warm);border-radius:var(--radius-md);padding:15px;}
+  .chart-card .num{font-family:'Fraunces', serif;font-size:1.9rem;font-weight:700;margin:0;}
+  .chart-card .label{font-size:0.7rem;color:var(--muted);margin:2px 0 12px;}
+  .bars{display:flex;align-items:flex-end;gap:5px;height:52px;}
+  .bars div{flex:1;background:var(--moss-pale);border-radius:4px 4px 0 0;}
+  .bars div.hi{background:var(--moss);}
+  .signal-row{display:flex;justify-content:space-between;align-items:center;font-size:0.76rem;padding:8px 0;border-top:1px solid var(--line);}
+  .signal-row .lbl{display:flex;align-items:center;gap:8px;}
+  .signal-row .dot{width:8px;height:8px;border-radius:50%;}
+  .badge-index{
+    background:var(--moss);color:var(--paper);border-radius:var(--radius-md);
+    padding:14px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .badge-index .num{font-family:'Fraunces', serif;font-size:1.6rem;font-weight:700;}
+  .badge-index .lbl{font-size:0.7rem;opacity:0.85;}
+
+  /* Chat screen */
+  .chat-scroll{flex:1;display:flex;flex-direction:column;gap:9px;overflow:hidden;}
+  .msg{max-width:78%;padding:9px 12px;border-radius:15px;font-size:0.74rem;line-height:1.45;}
+  .msg.bot{background:var(--paper-warm);align-self:flex-start;border-bottom-left-radius:4px;}
+  .msg.user{background:var(--moss);color:var(--paper);align-self:flex-end;border-bottom-right-radius:4px;}
+  .bot-head{display:flex;align-items:center;gap:8px;margin-bottom:2px;}
+  .bot-avatar{width:26px;height:26px;border-radius:50%;background:var(--moss);color:var(--paper);display:flex;align-items:center;justify-content:center;font-size:0.85rem;}
+  .quick-replies{display:flex;gap:6px;flex-wrap:wrap;}
+  .qr{font-size:0.68rem;padding:6px 12px;border-radius:100px;border:1px solid var(--line);color:var(--ink);background:var(--paper);}
+  .chat-input{
+    display:flex;align-items:center;gap:8px;background:var(--paper-warm);
+    border-radius:100px;padding:8px 8px 8px 15px;
+  }
+  .chat-input input{border:none;background:none;flex:1;font-family:inherit;font-size:0.76rem;color:var(--muted);outline:none;}
+  .chat-input .send{
+    width:32px;height:32px;border-radius:50%;background:var(--clay);color:var(--paper);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.9rem;
+  }
+
+  /* Settings screen */
+  .settings-header{display:flex;align-items:center;gap:10px;}
+  .settings-header h2{font-family:'Fraunces', serif;font-size:1.2rem;margin:0;font-weight:600;}
+  .setting-group{background:var(--paper-warm);border-radius:var(--radius-md);padding:4px 14px;}
+  .setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);gap:10px;}
+  .setting-row:last-child{border:none;}
+  .setting-label{display:flex;align-items:center;gap:10px;font-size:0.78rem;font-weight:600;}
+  .setting-label .si{width:30px;height:30px;border-radius:9px;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--ink);}
+  .theme-toggle{display:flex;background:var(--paper);border-radius:100px;padding:3px;gap:2px;}
+  .theme-toggle span{padding:5px 10px;border-radius:100px;font-size:0.85rem;display:flex;align-items:center;color:var(--muted);}
+  .theme-toggle span.active{background:var(--shell);color:var(--gold);}
+  .lang-select{font-size:0.72rem;font-weight:600;color:var(--moss);display:flex;align-items:center;gap:4px;}
+  .text-size-row{padding:12px 0;}
+  .text-size-row .setting-label{margin-bottom:10px;}
+  .size-slider{display:flex;align-items:center;gap:10px;}
+  .size-slider .track{flex:1;height:5px;background:var(--paper);border-radius:100px;position:relative;}
+  .size-slider .fill{position:absolute;left:0;top:0;height:100%;width:55%;background:var(--moss);border-radius:100px;}
+  .size-slider .knob{position:absolute;left:55%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:var(--clay);border:3px solid var(--paper-warm);}
+  .size-slider .sm{font-size:0.65rem;color:var(--muted);}
+  .size-slider .lg{font-size:1rem;font-weight:700;color:var(--ink);}
+
+  .footnote{max-width:760px;margin:10px auto 0;font-size:0.85rem;color:#655F4C;line-height:1.6;border-top:1px solid var(--line);padding-top:20px;text-align:center;}
+
+  /* Auth screens */
+  .auth-screen{justify-content:center;gap:18px;}
+  .auth-brand{text-align:center;margin-bottom:2px;}
+  .auth-brand .mark{
+    width:46px;height:46px;border-radius:14px;background:var(--moss);color:var(--paper);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:1.3rem;
+  }
+  .auth-brand h2{font-family:'Fraunces', serif;font-size:1.35rem;margin:0;font-weight:700;}
+  .auth-brand p{font-size:0.72rem;color:var(--muted);margin:3px 0 0;}
+  .segmented{display:flex;background:var(--paper-warm);border-radius:100px;padding:3px;gap:2px;}
+  .segmented span{flex:1;text-align:center;padding:8px 0;border-radius:100px;font-size:0.74rem;font-weight:700;color:var(--muted);}
+  .segmented span.active{background:var(--shell);color:var(--gold);}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field label{font-size:0.68rem;font-weight:700;color:var(--muted);}
+  .field .input{
+    background:var(--paper-warm);border-radius:var(--radius-sm);padding:11px 13px;
+    display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--ink);
+  }
+  .field .input.placeholder{color:var(--muted);}
+  .field .input svg{color:var(--muted);flex-shrink:0;}
+  .otp-row{display:flex;gap:7px;justify-content:center;}
+  .otp-box{
+    width:34px;height:42px;border-radius:10px;background:var(--paper-warm);
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:1.1rem;
+  }
+  .otp-box.filled{background:var(--moss);color:var(--paper);}
+  .otp-box.cursor{border:1.5px solid var(--clay);}
+  .auth-note{font-size:0.68rem;color:var(--muted);text-align:center;line-height:1.5;}
+  .auth-link{font-size:0.76rem;text-align:center;color:var(--moss);font-weight:700;}
+  .auth-divider{display:flex;align-items:center;gap:10px;font-size:0.66rem;color:var(--muted);}
+  .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--line);}
+  .lang-grid{display:flex;flex-wrap:wrap;gap:7px;}
+  .lang-grid .chip{flex:1 0 40%;text-align:center;padding:8px 4px;}
+</style>
+</head>
+<body>
+
+<svg style="display:none">
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M4 20C4 12 10 4 20 4c0 10-8 16-16 16Z"/><path d="M4 20c3-5 7-8 12-10"/></symbol>
+  <symbol id="i-crate" viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M4 9l2-5h12l2 5"/><path d="M9 13h6"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c3 3 3 14 0 17c-3-3-3-14 0-17Z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.9 6.3l1.7 1.7M17.4 16l1.7 1.7M3 12h2.4M18.6 12H21M4.9 17.7l1.7-1.7M17.4 8l1.7-1.7"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></symbol>
+  <symbol id="i-lang" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c3 3 3 14 0 17c-3-3-3-14 0-17Z"/></symbol>
+  <symbol id="i-textsize" viewBox="0 0 24 24"><path d="M4 18 8.5 6h1L14 18M5.3 14.5h7.4"/><path d="M16 18V9.5h3.5M14.5 18h4.5"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4Z"/><circle cx="12" cy="13.5" r="3.3"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12 20 4l-6 16-3-7-7-1Z"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 10a6 6 0 0 1 12 0v5l2 3H4l2-3Z"/><path d="M10 21a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-wifioff" viewBox="0 0 24 24"><path d="M3 8.5a16 16 0 0 1 4.6-2.8M20.6 8.5a16 16 0 0 0-4.6-2.8M6.5 12a10 10 0 0 1 4-2M17.5 12a10 10 0 0 0-4-2M9.5 15.3a5 5 0 0 1 5 0M12 19v.01M2 2l20 20"/></symbol>
+</svg>
+
+  <div class="intro">
+    <span class="tag"><svg class="icon"><use href="#i-leaf"/></svg> NextStep Hacks 2026 — Earth Forward</span>
+    <h1>Terra</h1>
+    <p>Une appli offline-first pour communautés rurales : diagnostic agricole, gestion des déchets, suivi de l'écosystème et assistant conversationnel — réunis dans une même expérience, pensée pour le terrain.</p>
+  </div>
+
+  <div class="group-label">Authentification <span>premier lancement, avant d'entrer dans l'app</span></div>
+  <div class="phones" style="margin-bottom:60px">
+
+    <div class="phone-block">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status-bar"><span>9:40</span><span class="icons"><svg class="icon" style="width:14px;height:14px"><use href="#i-wifioff"/></svg>100%</span></div>
+        <div class="screen auth-screen">
+          <div class="auth-brand">
+            <div class="mark"><svg class="icon"><use href="#i-leaf"/></svg></div>
+            <h2>Terra</h2>
+            <p>Bon retour parmi nous</p>
+          </div>
+          <div class="segmented"><span class="active">Connexion</span><span>Inscription</span></div>
+          <div class="field">
+            <label>Numéro de téléphone</label>
+            <div class="input placeholder"><svg class="icon" style="width:0.9em;height:0.9em"><use href="#i-mic" style="display:none"/></svg>+223 76 12 34 56</div>
+          </div>
+          <div class="field">
+            <label>Code PIN</label>
+            <div class="input placeholder">••••</div>
+          </div>
+          <div class="cta">Se connecter</div>
+          <div class="auth-divider">ou</div>
+          <div class="auth-link">Recevoir un code par SMS</div>
+          <p class="auth-note">Ta session reste active hors ligne une fois connecté(e). Une connexion est nécessaire uniquement la toute première fois.</p>
+        </div>
+      </div>
+      <div class="phone-label">Connexion</div>
+      <p class="phone-sub">Numéro de téléphone + code PIN local, ou code reçu par SMS</p>
+    </div>
+
+    <div class="phone-block">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status-bar"><span>9:40</span><span class="icons"><svg class="icon" style="width:14px;height:14px"><use href="#i-wifioff"/></svg>100%</span></div>
+        <div class="screen auth-screen">
+          <div class="auth-brand">
+            <div class="mark"><svg class="icon"><use href="#i-leaf"/></svg></div>
+            <h2>Rejoindre Terra</h2>
+            <p>Crée ton compte en 1 minute</p>
+          </div>
+          <div class="segmented"><span>Connexion</span><span class="active">Inscription</span></div>
+          <div class="field">
+            <label>Nom complet</label>
+            <div class="input placeholder">Awa Diarra</div>
+          </div>
+          <div class="field">
+            <label>Village / quartier</label>
+            <div class="input placeholder">Sabalibougou</div>
+          </div>
+          <div class="field">
+            <label>Langue préférée</label>
+            <div class="lang-grid">
+              <span class="chip active">Français</span>
+              <span class="chip">English</span>
+            </div>
+          </div>
+          <div class="cta">Créer mon compte</div>
+          <p class="auth-note">Un code PIN à 4 chiffres te sera demandé ensuite pour protéger l'accès à l'app.</p>
+        </div>
+      </div>
+      <div class="phone-label">Inscription</div>
+      <p class="phone-sub">Nom, village et langue — le strict minimum pour commencer</p>
+    </div>
+
+  </div>
+
+  <div class="group-label">Cœur de l'app <span>écrans principaux, navigation par onglets</span></div>
+  <div class="phones">
+
+    <div class="phone-block">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status-bar"><span>9:41</span><span class="icons"><svg class="icon" style="width:14px;height:14px"><use href="#i-wifioff"/></svg>100%</span></div>
+        <div class="screen">
+          <div class="topline">
+            <div class="greeting"><h2>Bonjour, Awa</h2><p>Sabalibougou · aujourd'hui</p></div>
+            <div class="icon-btn"><svg class="icon"><use href="#i-bell"/></svg></div>
+          </div>
+          <div class="offline-strip"><span class="dot-live"></span> Hors ligne — dernière synchro 09:12</div>
+          <div class="content-scroll">
+            <div class="module-card a">
+              <div class="m-icon leaf"><svg class="icon"><use href="#i-leaf"/></svg></div>
+              <div><p class="m-title">Agriculture</p><p class="m-meta">3 diagnostics cette semaine</p></div>
+              <span class="m-stat">92%</span>
+            </div>
+            <div class="module-card b">
+              <div class="m-icon crate"><svg class="icon"><use href="#i-crate"/></svg></div>
+              <div><p class="m-title">Ressources</p><p class="m-meta">2 points à collecter</p></div>
+              <span class="m-stat">6</span>
+            </div>
+            <div class="module-card c">
+              <div class="m-icon globe"><svg class="icon"><use href="#i-globe"/></svg></div>
+              <div><p class="m-title">Écosystème</p><p class="m-meta">Indice de santé local</p></div>
+              <span class="m-stat">Bon</span>
+            </div>
+            <div class="activity-row"><span class="dot"></span> Fatou a signalé un point plein <time>2h</time></div>
+            <div class="activity-row"><span class="dot"></span> Diagnostic manioc enregistré <time>hier</time></div>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tab active"><svg class="icon"><use href="#i-home"/></svg><span>Accueil</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-leaf"/></svg><span>Agri</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-crate"/></svg><span>Ressources</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-globe"/></svg><span>Terra</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-chat"/></svg><span>Chat</span></div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+      <div class="phone-label">Accueil</div>
+      <p class="phone-sub">Vue d'ensemble, statut hors ligne, activité récente de la communauté</p>
+    </div>
+
+    <div class="phone-block">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status-bar"><span>9:42</span><span class="icons"><svg class="icon" style="width:14px;height:14px"><use href="#i-wifioff"/></svg>100%</span></div>
+        <div class="screen">
+          <div class="greeting"><h2>Diagnostic plante</h2><p>Photographie une feuille pour l'analyser</p></div>
+          <div class="content-scroll">
+            <div class="photo-frame"><div class="cam"><svg class="icon"><use href="#i-camera"/></svg></div></div>
+            <div class="result-card">
+              <span class="result-tag"><svg class="icon" style="width:0.8em;height:0.8em"><use href="#i-leaf"/></svg> Maladie détectée</span>
+              <h3>Mildiou du manioc</h3>
+              <p>Taches brunes sur les feuilles basses. Retirer les feuilles atteintes et espacer les plants.</p>
+              <div class="chip-row">
+                <span class="chip active">Français</span>
+                <span class="chip">English</span>
+              </div>
+            </div>
+          </div>
+          <div class="cta"><svg class="icon"><use href="#i-plus"/></svg> Enregistrer le diagnostic</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><svg class="icon"><use href="#i-home"/></svg><span>Accueil</span></div>
+          <div class="tab active"><svg class="icon"><use href="#i-leaf"/></svg><span>Agri</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-crate"/></svg><span>Ressources</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-globe"/></svg><span>Terra</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-chat"/></svg><span>Chat</span></div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+      <div class="phone-label">Agriculture</div>
+      <p class="phone-sub">Diagnostic par photo, conseils en langue locale, tout fonctionne hors ligne</p>
+    </div>
+
+    <div class="phone-block">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status-bar"><span>9:43</span><span class="icons"><svg class="icon" style="width:14px;height:14px"><use href="#i-wifioff"/></svg>100%</span></div>
+        <div class="screen">
+          <div class="greeting"><h2>Points de collecte</h2><p>Quartier Sabalibougou</p></div>
+          <div class="content-scroll">
+            <div class="list-card">
+              <div class="task-row"><span class="task-dot full"></span><div><p class="task-name">Marché central</p><p class="task-loc">Signalé il y a 2h</p></div><span class="task-badge">Plein</span></div>
+              <div class="task-row"><span class="task-dot mid"></span><div><p class="task-name">École primaire</p><p class="task-loc">Signalé hier</p></div><span class="task-badge">3/4</span></div>
+              <div class="task-row"><span class="task-dot ok"></span><div><p class="task-name">Rue des artisans</p><p class="task-loc">Vidé ce matin</p></div><span class="task-badge">Vide</span></div>
+            </div>
+          </div>
+          <div class="report-btn"><svg class="icon"><use href="#i-plus"/></svg> Signaler un point plein</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><svg class="icon"><use href="#i-home"/></svg><span>Accueil</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-leaf"/></svg><span>Agri</span></div>
+          <div class="tab active"><svg class="icon"><use href="#i-crate"/></svg><span>Ressources</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-globe"/></svg><span>Terra</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-chat"/></svg><span>Chat</span></div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+      <div class="phone-label">Ressources</div>
+      <p class="phone-sub">Signalement et dispatch communautaire de la collecte des déchets</p>
+    </div>
+
+    <div class="phone-block">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status-bar"><span>9:44</span><span class="icons"><svg class="icon" style="width:14px;height:14px"><use href="#i-wifioff"/></svg>100%</span></div>
+        <div class="screen">
+          <div class="greeting"><h2>Santé environnementale</h2><p>Cette semaine, quartier</p></div>
+          <div class="content-scroll">
+            <div class="badge-index">
+              <div><div class="num">Bon</div><div class="lbl">Indice de santé local</div></div>
+              <svg class="icon" style="width:28px;height:28px"><use href="#i-globe"/></svg>
+            </div>
+            <div class="chart-card">
+              <p class="num">14</p><p class="label">Signaux remontés cette semaine</p>
+              <div class="bars">
+                <div style="height:30%"></div><div style="height:50%"></div><div class="hi" style="height:90%"></div>
+                <div style="height:40%"></div><div style="height:65%"></div><div class="hi" style="height:85%"></div><div style="height:55%"></div>
+              </div>
+            </div>
+            <div class="list-card">
+              <div class="signal-row"><span class="lbl"><span class="dot" style="background:var(--clay)"></span>Maladies de plantes</span><span>6</span></div>
+              <div class="signal-row"><span class="lbl"><span class="dot" style="background:var(--gold)"></span>Points de déchets</span><span>5</span></div>
+              <div class="signal-row"><span class="lbl"><span class="dot" style="background:var(--moss)"></span>Zones saines</span><span>3</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><svg class="icon"><use href="#i-home"/></svg><span>Accueil</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-leaf"/></svg><span>Agri</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-crate"/></svg><span>Ressources</span></div>
+          <div class="tab active"><svg class="icon"><use href="#i-globe"/></svg><span>Terra</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-chat"/></svg><span>Chat</span></div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+      <div class="phone-label">Écosystème</div>
+      <p class="phone-sub">Dashboard agrégeant les signaux remontés par les deux autres modules</p>
+    </div>
+
+    <div class="phone-block">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status-bar"><span>9:45</span><span class="icons"><svg class="icon" style="width:14px;height:14px"><use href="#i-wifioff"/></svg>100%</span></div>
+        <div class="screen">
+          <div class="bot-head"><div class="bot-avatar"><svg class="icon" style="width:0.9em;height:0.9em"><use href="#i-leaf"/></svg></div><div><p class="m-title" style="margin:0">Assistant Terra</p></div></div>
+          <div class="chat-scroll">
+            <div class="msg bot">Bonjour Awa. Je peux t'aider avec tes plants, la collecte ou l'état de ton quartier.</div>
+            <div class="msg user">Mes feuilles de manioc jaunissent, que faire ?</div>
+            <div class="msg bot">Ça peut être un manque d'azote ou le début d'un mildiou. Peux-tu prendre une photo dans l'onglet Agriculture pour un diagnostic précis ?</div>
+            <div class="quick-replies">
+              <span class="qr">Ouvrir Agriculture</span>
+              <span class="qr">Voir mes anciens diagnostics</span>
+            </div>
+          </div>
+          <div class="chat-input">
+            <svg class="icon" style="color:var(--muted)"><use href="#i-mic"/></svg>
+            <input placeholder="Écris ta question…" />
+            <div class="send"><svg class="icon" style="width:0.9em;height:0.9em"><use href="#i-send"/></svg></div>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tab"><svg class="icon"><use href="#i-home"/></svg><span>Accueil</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-leaf"/></svg><span>Agri</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-crate"/></svg><span>Ressources</span></div>
+          <div class="tab"><svg class="icon"><use href="#i-globe"/></svg><span>Terra</span></div>
+          <div class="tab active"><svg class="icon"><use href="#i-chat"/></svg><span>Chat</span></div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+      <div class="phone-label">Assistant</div>
+      <p class="phone-sub">Chatbot qui oriente vers le bon module et répond aux questions courantes, hors ligne</p>
+    </div>
+
+  </div>
+
+  <div class="group-label">Réglages <span>accessible depuis la cloche/profil de l'accueil</span></div>
+  <div class="phones" style="margin-bottom:20px">
+
+    <div class="phone-block">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status-bar"><span>9:46</span><span class="icons"><svg class="icon" style="width:14px;height:14px"><use href="#i-wifioff"/></svg>100%</span></div>
+        <div class="screen">
+          <div class="settings-header">
+            <div class="icon-btn"><svg class="icon"><use href="#i-chevron"/></svg></div>
+            <h2>Paramètres</h2>
+          </div>
+          <div class="content-scroll">
+            <div class="setting-group">
+              <div class="setting-row">
+                <span class="setting-label"><span class="si"><svg class="icon"><use href="#i-sun"/></svg></span>Thème</span>
+                <div class="theme-toggle">
+                  <span class="active"><svg class="icon" style="width:0.85em;height:0.85em"><use href="#i-sun"/></svg></span>
+                  <span><svg class="icon" style="width:0.85em;height:0.85em"><use href="#i-moon"/></svg></span>
+                </div>
+              </div>
+              <div class="setting-row">
+                <span class="setting-label"><span class="si"><svg class="icon"><use href="#i-lang"/></svg></span>Langue</span>
+                <span class="lang-select">Français <svg class="icon" style="width:0.7em;height:0.7em;transform:rotate(-90deg)"><use href="#i-chevron"/></svg></span>
+              </div>
+              <div class="setting-row text-size-row" style="flex-direction:column;align-items:stretch;">
+                <span class="setting-label"><span class="si"><svg class="icon"><use href="#i-textsize"/></svg></span>Taille du texte</span>
+                <div class="size-slider">
+                  <span class="sm">Aa</span>
+                  <div class="track"><div class="fill"></div><div class="knob"></div></div>
+                  <span class="lg">Aa</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-group" style="margin-top:12px">
+              <div class="setting-row"><span class="setting-label"><span class="si"><svg class="icon"><use href="#i-wifioff"/></svg></span>Sync hors ligne</span><span class="lang-select">Auto</span></div>
+              <div class="setting-row"><span class="setting-label"><span class="si"><svg class="icon"><use href="#i-gear"/></svg></span>À propos</span><svg class="icon" style="width:0.7em;height:0.7em;color:var(--muted)"><use href="#i-chevron" style="transform:rotate(180deg)"/></svg></div>
+            </div>
+          </div>
+        </div>
+        <div class="home-indicator"></div>
+      </div>
+      <div class="phone-label">Paramètres</div>
+      <p class="phone-sub">Thème clair/sombre, langue de l'interface, taille de texte ajustable</p>
+    </div>
+
+  </div>
+
+  <p class="footnote">Maquette statique — icônes en sprite SVG réutilisable, sans image bitmap. Fraunces (titres) + Space Grotesk (interface). Palette ancrée dans les tons de terre/sol, pas dans un thème "app corporate" générique.</p>
+
+</body>
+</html>
