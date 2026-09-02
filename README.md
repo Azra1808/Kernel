@@ -83,4 +83,4 @@ Toute fusion vers `dev` passe par une Pull Request avec au moins une relecture. 
 
 - [`docs/Kernel_Documentation.docx`](./docs/Kernel_Documentation.docx) — documentation technique et fonctionnelle complète.
 - [`docs/Kernel_Repartition_Taches.xlsx`](./docs/Kernel_Repartition_Taches.xlsx) — classeur de répartition des tâches de l'équipe.
-- [`assets/design/terra-mockup.html`](./assets/design/terra-mockup.html) — maquette de référence validée.
+- [`assets/design/kernel-mockup.html`](./assets/design/terra-mockup.html) — maquette de référence validée.
