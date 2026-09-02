@@ -1,4 +1,4 @@
-# Terra
+# Kernel
 
 Application mobile **offline-first** pour communautés rurales — diagnostic agricole, gestion des déchets et suivi de l'écosystème, réunis dans une même expérience.
 
@@ -16,15 +16,15 @@ Projet réalisé pour **NextStep Hacks 2026** — Thème : *Earth Forward*.
 
 ## Présentation
 
-Terra réunit 3 modules dans une seule application :
+Kernel réunit 3 modules dans une seule application :
 
 - **Agriculture** — diagnostic de maladies de plantes par photo, conseils en français/anglais, fonctionne hors ligne.
 - **Ressources** — signalement et priorisation de la collecte des déchets communautaires.
 - **Écosystème** — tableau de bord agrégeant les signaux des deux autres modules en un indice de santé environnementale local.
 
-Un **assistant conversationnel** (Terra) et un onglet **Paramètres** (thème, langue, taille de texte) complètent l'expérience.
+Un **assistant conversationnel** (Kernel) et un onglet **Paramètres** (thème, langue, taille de texte) complètent l'expérience.
 
-Voir la documentation complète dans [`docs/Terra_Documentation.docx`](./docs/Terra_Documentation.docx).
+Voir la documentation complète dans [`docs/Kernel_Documentation.docx`](./docs/Kernel_Documentation.docx).
 
 ## Stack technique
 
@@ -39,7 +39,7 @@ Voir la documentation complète dans [`docs/Terra_Documentation.docx`](./docs/Te
 ## Structure du dépôt
 
 ```
-Terra/
+Kernel/
 ├── app/              # Application React Native (Expo) — initialisée à la tâche n°4
 ├── assets/
 │   ├── design/       # Maquettes, charte graphique, exports de la maquette validée
@@ -77,10 +77,10 @@ Toute fusion vers `dev` passe par une Pull Request avec au moins une relecture. 
 | Coéquipier 3 | Module Ressources |
 | Coéquipier 4 | Module Écosystème |
 
-*(à remplacer par les vrais prénoms dans ce fichier et dans le classeur `docs/Terra_Repartition_Taches.xlsx`)*
+*(à remplacer par les vrais prénoms dans ce fichier et dans le classeur `docs/Kernel_Repartition_Taches.xlsx`)*
 
 ## Documentation
 
-- [`docs/Terra_Documentation.docx`](./docs/Terra_Documentation.docx) — documentation technique et fonctionnelle complète.
-- [`docs/Terra_Repartition_Taches.xlsx`](./docs/Terra_Repartition_Taches.xlsx) — classeur de répartition des tâches de l'équipe.
+- [`docs/Kernel_Documentation.docx`](./docs/Kernel_Documentation.docx) — documentation technique et fonctionnelle complète.
+- [`docs/Kernel_Repartition_Taches.xlsx`](./docs/Kernel_Repartition_Taches.xlsx) — classeur de répartition des tâches de l'équipe.
 - [`assets/design/terra-mockup.html`](./assets/design/terra-mockup.html) — maquette de référence validée.
