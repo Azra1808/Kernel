@@ -39,7 +39,7 @@ Voir la documentation complète dans [`docs/Terra_Documentation.docx`](./docs/Te
 ## Structure du dépôt
 
 ```
-terra/
+Terra/
 ├── app/              # Application React Native (Expo) — initialisée à la tâche n°4
 ├── assets/
 │   ├── design/       # Maquettes, charte graphique, exports de la maquette validée
