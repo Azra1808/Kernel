@@ -73,14 +73,12 @@ Toute fusion vers `dev` passe par une Pull Request avec au moins une relecture. 
 | Membre | Rôle |
 | --- | --- |
 | Florette | Coordination, fondations, assistant & paramètres |
-| Coéquipier 2 | Module Agriculture |
-| Coéquipier 3 | Module Ressources |
-| Coéquipier 4 | Module Écosystème |
-
-*(à remplacer par les vrais prénoms dans ce fichier et dans le classeur `docs/Kernel_Repartition_Taches.xlsx`)*
+| Flo | Module Agriculture |
+| Michou | Module Ressources |
+| Krys | Module Écosystème |
 
 ## Documentation
 
 - [`docs/Kernel_Documentation.docx`](./docs/Kernel_Documentation.docx) — documentation technique et fonctionnelle complète.
 - [`docs/Kernel_Repartition_Taches.xlsx`](./docs/Kernel_Repartition_Taches.xlsx) — classeur de répartition des tâches de l'équipe.
-- [`assets/design/kernel-mockup.html`](./assets/design/terra-mockup.html) — maquette de référence validée.
+- [`assets/design/kernel-mockup.html`](./assets/design/kernel-mockup.html) — maquette de référence validée.
