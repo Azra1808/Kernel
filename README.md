@@ -87,9 +87,9 @@ Toute fusion vers `dev` passe par une Pull Request avec au moins une relecture. 
 
 | Membre | Rôle |
 | --- | --- |
-| Florette | Coordination, fondations, assistant & paramètres |
-| Flo | Module Agriculture |
-| Michou | Module Ressources |
+| Azra | Coordination, fondations, assistant & paramètres |
+| Michou | Module Agriculture |
+| Florent | Module Ressources |
 | Krys | Module Écosystème |
 
 ## Documentation
