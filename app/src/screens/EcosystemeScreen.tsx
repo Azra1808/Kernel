@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
+import { fonts, fontSize } from '../theme/typography';
 
 // Module Écosystème (Krys) — tâches n°15, 16 :
 // requêtes d'agrégation (déjà en place côté Supabase) + dashboard
@@ -22,12 +23,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontFamily: fonts.titleBold,
+    fontSize: fontSize.xl,
     color: colors.ink,
   },
   subtitle: {
-    fontSize: 14,
+    fontFamily: fonts.body,
+    fontSize: fontSize.sm,
     color: colors.muted,
   },
 });

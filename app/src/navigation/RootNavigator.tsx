@@ -1,6 +1,8 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { colors } from '../theme/colors';
+import { fonts, fontSize } from '../theme/typography';
+import { Icon, IconName } from '../theme/Icon';
 
 import AccueilScreen from '../screens/AccueilScreen';
 import AgricultureScreen from '../screens/AgricultureScreen';
@@ -23,16 +25,21 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 // Paramètres n'est PAS un onglet : accessible depuis l'icône profil/cloche
 // de l'écran Accueil (voir maquette).
 //
-// NOTE — icônes : la maquette utilise un sprite SVG unique (symbol/use),
-// pas de librairie d'icônes tierce. Le composant d'icône réel sera branché
-// à la tâche n°5 (design system). En attendant, tabBarIcon est omis pour
-// ne pas introduire de dépendance provisoire (ex. vector-icons) qu'il
-// faudrait ensuite retirer.
+// NOTE — icônes : branchées via le composant Icon (tâche n°5), qui
+// réplique en React Native le sprite SVG unique de la maquette.
+const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
+  Accueil: 'home',
+  Agriculture: 'leaf',
+  Ressources: 'crate',
+  Ecosysteme: 'globe',
+  Assistant: 'chat',
+};
+
 export default function RootNavigator() {
   return (
     <NavigationContainer>
       <Tab.Navigator
-        screenOptions={{
+        screenOptions={({ route }) => ({
           headerShown: false,
           tabBarActiveTintColor: colors.gold,
           tabBarInactiveTintColor: '#8B9187',
@@ -44,10 +51,13 @@ export default function RootNavigator() {
             paddingBottom: 8,
           },
           tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: '600',
+            fontFamily: fonts.bodySemiBold,
+            fontSize: fontSize.xs,
           },
-        }}
+          tabBarIcon: ({ color, size }) => (
+            <Icon name={TAB_ICONS[route.name as keyof RootTabParamList]} color={color} size={size - 2} />
+          ),
+        })}
       >
         <Tab.Screen name="Accueil" component={AccueilScreen} options={{ tabBarLabel: 'Accueil' }} />
         <Tab.Screen name="Agriculture" component={AgricultureScreen} options={{ tabBarLabel: 'Agri' }} />
