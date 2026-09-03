@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
+import { fonts, fontSize } from '../theme/typography';
 
 // Module Ressources (Florent) — tâches n°12, 13, 14 :
 // liste des points de collecte, formulaire de signalement, priorisation.
@@ -21,12 +22,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontFamily: fonts.titleBold,
+    fontSize: fontSize.xl,
     color: colors.ink,
   },
   subtitle: {
-    fontSize: 14,
+    fontFamily: fonts.body,
+    fontSize: fontSize.sm,
     color: colors.muted,
   },
 });
