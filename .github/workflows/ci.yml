@@ -67,7 +67,9 @@ jobs:
             exit 1
           fi
 
-          leaked_privileged_keys="$(git grep -I -n -E 'sb_secret_[A-Za-z0-9_-]{12,}|service_role[^[:space:]]*[=:][^[:space:]]{12,}|postgresql://[^[:space:]]+:[^[:space:]@]+@' -- . ':!docs/*' || true)"
+          # Le fichier de règles contient volontairement les motifs de détection
+          # eux-mêmes : il doit être exclu pour éviter un faux positif réflexif.
+          leaked_privileged_keys="$(git grep -I -n -E 'sb_secret_[A-Za-z0-9_-]{12,}|service_role[^[:space:]]*[=:][^[:space:]]{12,}|postgresql://[^[:space:]]+:[^[:space:]@]+@' -- . ':!docs/*' ':!.github/workflows/ci.yml' || true)"
           if [[ -n "$leaked_privileged_keys" ]]; then
             echo "::error::A privileged Supabase key or database connection string is tracked by Git"
             printf '%s\n' "$leaked_privileged_keys"
