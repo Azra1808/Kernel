@@ -1,32 +1,74 @@
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors } from '../theme/colors';
+import { ActivityItem } from '../components/ActivityItem';
+import { AppScreen } from '../components/AppScreen';
+import { ModuleCard } from '../components/ModuleCard';
+import { OfflineBanner } from '../components/OfflineBanner';
+import { ScreenHeader } from '../components/ScreenHeader';
+import type { RootTabParamList } from '../navigation/RootNavigator';
+import { colors, fontFamily, spacing } from '../theme/colors';
 
-// Tâche n°8 : reproduire fidèlement l'écran Accueil de la maquette
-// (3 cartes modules, bandeau hors-ligne, fil d'activité récente).
-export default function AccueilScreen() {
+type Props = BottomTabScreenProps<RootTabParamList, 'Accueil'>;
+
+export default function AccueilScreen({ navigation }: Props) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Accueil</Text>
-      <Text style={styles.subtitle}>Écran à construire — tâche n°8</Text>
-    </View>
+    <AppScreen testID="home-screen">
+      <ScreenHeader onAction={() => undefined} subtitle="Sabalibougou · aujourd'hui" title="Bonjour, Awa" />
+      <View style={styles.bannerSpacing}>
+        <OfflineBanner />
+      </View>
+
+      <View style={styles.modules}>
+        <ModuleCard
+          icon="feather"
+          meta="3 diagnostics cette semaine"
+          onPress={() => navigation.navigate('Agriculture')}
+          shape="leaf"
+          stat="92%"
+          title="Agriculture"
+          tone="moss"
+        />
+        <ModuleCard
+          icon="archive"
+          meta="2 points à collecter"
+          onPress={() => navigation.navigate('Ressources')}
+          shape="crate"
+          stat="6"
+          title="Ressources"
+          tone="gold"
+        />
+        <ModuleCard
+          icon="globe"
+          meta="Indice de santé local"
+          onPress={() => navigation.navigate('Ecosysteme')}
+          stat="Bon"
+          title="Écosystème"
+          tone="clay"
+        />
+      </View>
+
+      <Text style={styles.sectionTitle}>Activité récente</Text>
+      <View accessibilityLabel="Activité récente">
+        <ActivityItem label="Fatou a signalé un point plein" time="2h" />
+        <ActivityItem label="Diagnostic manioc enregistré" time="hier" />
+      </View>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.paper,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+  bannerSpacing: {
+    marginTop: spacing.lg,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
+  modules: {
+    gap: spacing.md,
+    marginTop: spacing.lg,
+  },
+  sectionTitle: {
     color: colors.ink,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.muted,
+    fontFamily: fontFamily.displaySemibold,
+    fontSize: 18,
+    marginBottom: spacing.sm,
+    marginTop: spacing.xl,
   },
 });
