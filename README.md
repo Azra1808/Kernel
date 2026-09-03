@@ -44,19 +44,34 @@ Kernel/
 ├── assets/
 │   ├── design/       # Maquettes, charte graphique, exports de la maquette validée
 │   └── icons/        # Sprite SVG d'icônes de l'application
-├── docs/             # Documentation technique, classeur de répartition des tâches
+├── docs/             # Documentation, suivi des tâches et classeur de répartition
+├── supabase/         # Configuration locale, migrations, rollbacks et tests pgTAP
+├── .github/workflows # Contrôles de toutes les branches et APK sur main
 └── README.md
 ```
 
 ## Démarrage du projet
 
-> À compléter à la tâche n°4 (initialisation du projet Expo).
+```bash
+cd app
+npm ci
+copy .env.example .env
+npx expo start
+```
+
+Le mode aperçu fonctionne sans Supabase. Pour les données réelles, renseigner uniquement l'URL du projet et la clé `sb_publishable_*` dans `app/.env`. Une clé `sb_secret_*`, `service_role` ou un mot de passe PostgreSQL ne doit jamais être utilisé dans l'application mobile.
+
+Contrôles locaux :
 
 ```bash
 cd app
-npm install
-npx expo start
+npm run lint
+npm run typecheck
+npm test
+npm run build
 ```
+
+La CI exécute ces contrôles sur chaque branche. Tout push sur `main`, après succès des contrôles, génère aussi un APK Android de debug téléchargeable dans les artefacts GitHub Actions.
 
 ## Branches & workflow Git
 
@@ -82,3 +97,5 @@ Toute fusion vers `dev` passe par une Pull Request avec au moins une relecture. 
 - [`docs/Kernel_Documentation.docx`](./docs/Kernel_Documentation.docx) — documentation technique et fonctionnelle complète.
 - [`docs/Kernel_Repartition_Taches.xlsx`](./docs/Kernel_Repartition_Taches.xlsx) — classeur de répartition des tâches de l'équipe.
 - [`assets/design/kernel-mockup.html`](./assets/design/kernel-mockup.html) — maquette de référence validée.
+- [`docs/KRYS_STATUS.md`](./docs/KRYS_STATUS.md) — état vérifié des tâches Krys, dépendances et interventions requises.
+- [`supabase/README.md`](./supabase/README.md) — procédure locale et règles de sécurité Supabase.
