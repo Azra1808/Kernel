@@ -1,8 +1,6 @@
-import Feather from '@expo/vector-icons/Feather';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { AppScreen } from '../components/AppScreen';
-import { ScreenHeader } from '../components/ScreenHeader';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Icon } from '../theme/Icon';
 import { demoDashboard, type EcosystemDashboard } from '../features/ecosystem/domain';
 import { SignalBreakdown } from '../features/ecosystem/SignalBreakdown';
 import { loadEcosystemDashboard, type DashboardResult } from '../features/ecosystem/service';
@@ -30,12 +28,15 @@ export default function EcosystemeScreen() {
   const { dashboard } = result;
 
   return (
-    <AppScreen contentContainerStyle={styles.content} testID="ecosystem-screen">
-      <ScreenHeader subtitle="Cette semaine · votre quartier" title="Santé environnementale" />
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.headerBlock}>
+        <Text style={styles.title}>Santé environnementale</Text>
+        <Text style={styles.subtitle}>Cette semaine · votre quartier</Text>
+      </View>
 
       {result.notice ? (
         <View style={styles.notice}>
-          <Feather color={colors.warning} name="info" size={15} />
+          <View style={styles.noticeDot} />
           <Text style={styles.noticeText}>{result.notice}</Text>
         </View>
       ) : null}
@@ -50,7 +51,7 @@ export default function EcosystemeScreen() {
       <Text style={styles.privacy}>
         {`Données agrégées uniquement. L’indice n’est affiché qu’à partir de ${dashboard.privacyThreshold} signaux.`}
       </Text>
-    </AppScreen>
+    </ScrollView>
   );
 }
 
@@ -64,26 +65,53 @@ function HealthCard({ dashboard, loading }: { dashboard: EcosystemDashboard; loa
           <Text style={styles.healthLabel}>{dashboard.healthLabel}</Text>
         )}
         <Text style={styles.healthCaption}>
-          {dashboard.healthScore === null ? 'Confidentialité préservée' : `Indice de santé local · ${dashboard.healthScore}/100`}
+          {dashboard.healthScore === null
+            ? 'Confidentialité préservée'
+            : `Indice de santé local · ${dashboard.healthScore}/100`}
         </Text>
       </View>
       <View style={styles.globe}>
-        <Feather color={colors.paper} name="globe" size={27} />
+        <Icon name="globe" color={colors.paper} size={27} />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { gap: spacing.md },
+  container: {
+    flex: 1,
+    backgroundColor: colors.paper,
+  },
+  content: {
+    padding: 20,
+    gap: spacing.md,
+  },
+  headerBlock: {
+    gap: 4,
+  },
+  title: {
+    fontFamily: fontFamily.displayBold,
+    fontSize: 24,
+    color: colors.ink,
+  },
+  subtitle: {
+    fontFamily: fontFamily.body,
+    fontSize: 13,
+    color: colors.muted,
+  },
   notice: {
     alignItems: 'center',
     backgroundColor: colors.goldPale,
     borderRadius: radius.sm,
     flexDirection: 'row',
     gap: spacing.sm,
-    marginTop: spacing.lg,
     padding: spacing.md,
+  },
+  noticeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.warning,
   },
   noticeText: {
     color: colors.warning,
@@ -98,7 +126,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: spacing.lg,
     minHeight: 98,
     padding: spacing.lg,
   },
@@ -127,7 +154,6 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.body,
     fontSize: 10,
     lineHeight: 15,
-    marginTop: spacing.md,
     textAlign: 'center',
   },
 });

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
+import { fonts, fontSize } from '../theme/typography';
 
 // Module Agriculture (Michel) — tâches n°9, 10, 11 :
 // capture photo, diagnostic TFLite hors ligne, résultat + sauvegarde.
@@ -21,12 +22,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontFamily: fonts.titleBold,
+    fontSize: fontSize.xl,
     color: colors.ink,
   },
   subtitle: {
-    fontSize: 14,
+    fontFamily: fonts.body,
+    fontSize: fontSize.sm,
     color: colors.muted,
   },
 });

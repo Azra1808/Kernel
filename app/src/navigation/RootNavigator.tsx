@@ -1,7 +1,8 @@
-import Feather from '@expo/vector-icons/Feather';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { colors, fontFamily } from '../theme/colors';
+import { colors } from '../theme/colors';
+import { fonts, fontSize } from '../theme/typography';
+import { Icon, IconName } from '../theme/Icon';
 
 import AccueilScreen from '../screens/AccueilScreen';
 import AgricultureScreen from '../screens/AgricultureScreen';
@@ -19,12 +20,19 @@ export type RootTabParamList = {
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-const tabIcons: Record<keyof RootTabParamList, keyof typeof Feather.glyphMap> = {
+// 5 onglets principaux, dans l'ordre et avec les libellés courts de la
+// maquette validée (Accueil / Agri / Ressources / Kernel / Chat).
+// Paramètres n'est PAS un onglet : accessible depuis l'icône profil/cloche
+// de l'écran Accueil (voir maquette).
+//
+// NOTE — icônes : branchées via le composant Icon (tâche n°5), qui
+// réplique en React Native le sprite SVG unique de la maquette.
+const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
   Accueil: 'home',
-  Agriculture: 'feather',
-  Ressources: 'archive',
+  Agriculture: 'leaf',
+  Ressources: 'crate',
   Ecosysteme: 'globe',
-  Assistant: 'message-circle',
+  Assistant: 'chat',
 };
 
 export default function RootNavigator() {
@@ -36,7 +44,6 @@ export default function RootNavigator() {
           tabBarActiveTintColor: colors.gold,
           tabBarInactiveTintColor: '#8B9187',
           tabBarHideOnKeyboard: true,
-          tabBarIcon: ({ color, size }) => <Feather color={color} name={tabIcons[route.name]} size={size} />,
           tabBarStyle: {
             backgroundColor: colors.shell,
             borderTopWidth: 0,
@@ -45,9 +52,12 @@ export default function RootNavigator() {
             paddingBottom: 10,
           },
           tabBarLabelStyle: {
-            fontFamily: fontFamily.bodySemibold,
-            fontSize: 11,
+            fontFamily: fonts.bodySemiBold,
+            fontSize: fontSize.xs,
           },
+          tabBarIcon: ({ color, size }) => (
+            <Icon name={TAB_ICONS[route.name as keyof RootTabParamList]} color={color} size={size - 2} />
+          ),
         })}
       >
         <Tab.Screen name="Accueil" component={AccueilScreen} options={{ tabBarLabel: 'Accueil' }} />
