@@ -26,6 +26,7 @@ export interface WastePointWithStatus {
  * déjà présent en local (voir getWastePointsWithStatus).
  */
 export async function fetchAndCacheWastePoints(): Promise<void> {
+  if (!supabase) return;
   const { data, error } = await supabase.from('waste_points').select('*');
   if (error || !data) {
     return;

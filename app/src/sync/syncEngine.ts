@@ -56,6 +56,9 @@ async function syncTable(tableName: string): Promise<SyncResult> {
 
   for (const row of pendingRows) {
     try {
+      if (!supabase) {
+        throw new Error('Supabase non configuré (mode démo)');
+      }
       const payload = config.toRemotePayload(row);
       // upsert : gère aussi bien la création que la mise à jour d'un
       // enregistrement déjà connu du serveur (ex. réédition hors ligne).
