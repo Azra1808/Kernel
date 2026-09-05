@@ -32,3 +32,9 @@ yarn-error.*
 
 # Logs
 *.log
+
+# Office temporary lock files
+~$*
+
+# Local package-manager cache used by development commands
+.npm-cache/
