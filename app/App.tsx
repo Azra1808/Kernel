@@ -48,14 +48,10 @@ export default function App() {
     initDatabase()
       .then(() => setDbReady(true))
       .catch((err) => {
-        // En cas d'échec d'ouverture de la base locale, l'app ne peut pas
-        // fonctionner en mode offline-first : on log pour l'instant, un
-        // écran d'erreur dédié pourra être ajouté plus tard.
         console.error("[db] échec d'initialisation SQLite:", err);
       });
   }, []);
 
-  // Déclenche la synchro à la reconnexion réseau + toutes les 30s.
   useAutoSync();
 
   const appReady = fontsLoaded && dbReady;

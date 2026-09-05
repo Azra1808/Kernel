@@ -1,18 +1,25 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
 import { fonts, fontSize } from '../theme/typography';
 import { Icon } from '../theme/Icon';
 import { Card } from '../components/Card';
-import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
 import { StatusBadge } from '../components/StatusBadge';
+import type { RootTabParamList } from '../navigation/RootNavigator';
 
-// Tâche n°8 : reproduire fidèlement l'écran Accueil de la maquette
-// (3 cartes modules, bandeau hors-ligne, fil d'activité récente).
-// Ce qui suit est un aperçu du design system (tâche n°5), pas encore
-// l'écran final — sert à vérifier que les composants tiennent ensemble
-// avant que Krys ne construise le vrai écran.
-export default function AccueilScreen() {
+type Props = BottomTabScreenProps<RootTabParamList, 'Accueil'>;
+
+// Écran Accueil — tâche n°8 (Krys), re-habillé avec le design system A
+// (Card/Chip/StatusBadge, tâche n°5) suite à la réconciliation main/dev.
+// Comportement et contenu identiques à la version d'origine (navigation
+// au tap sur chaque module, stats, fil d'activité) — seul l'habillage
+// visuel change.
+//
+// NOTE — "Bonjour, Awa" / quartier / stats sont pour l'instant des
+// valeurs fixes : à relier aux vraies données (auth + Supabase) une fois
+// ces modules prêts.
+export default function AccueilScreen({ navigation }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <StatusBadge state="offline" />
@@ -22,40 +29,60 @@ export default function AccueilScreen() {
           <Icon name="leaf" color={colors.clay} size={22} />
           <Text style={styles.brand}>Kernel</Text>
         </View>
-        <Text style={styles.title}>Bonjour 👋</Text>
-        <Text style={styles.subtitle}>Design system — tâche n°5 (aperçu)</Text>
+        <Text style={styles.title}>Bonjour, Awa</Text>
+        <Text style={styles.subtitle}>Sabalibougou · aujourd’hui</Text>
       </View>
 
-      <Card tone="moss" style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Icon name="leaf" color={colors.moss} size={20} />
-          <Text style={styles.cardTitle}>Agriculture</Text>
-          <Chip label="Sain" tone="moss" />
-        </View>
-        <Text style={styles.cardBody}>Diagnostiquer une plante en une photo.</Text>
-      </Card>
+      <View style={styles.modules}>
+        <Pressable onPress={() => navigation.navigate('Agriculture')}>
+          <Card tone="moss" style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Icon name="leaf" color={colors.moss} size={20} />
+              <Text style={styles.cardTitle}>Agriculture</Text>
+              <Chip label="92%" tone="moss" />
+            </View>
+            <Text style={styles.cardBody}>3 diagnostics cette semaine</Text>
+          </Card>
+        </Pressable>
 
-      <Card tone="clay" style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Icon name="crate" color={colors.clay} size={20} />
-          <Text style={styles.cardTitle}>Ressources</Text>
-          <Chip label="2 points pleins" tone="clay" />
-        </View>
-        <Text style={styles.cardBody}>Signaler un point de collecte.</Text>
-      </Card>
+        <Pressable onPress={() => navigation.navigate('Ressources')}>
+          <Card tone="gold" style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Icon name="crate" color={colors.gold} size={20} />
+              <Text style={styles.cardTitle}>Ressources</Text>
+              <Chip label="6" tone="gold" />
+            </View>
+            <Text style={styles.cardBody}>2 points à collecter</Text>
+          </Card>
+        </Pressable>
 
-      <Card tone="gold" style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Icon name="globe" color={colors.gold} size={20} />
-          <Text style={styles.cardTitle}>Écosystème</Text>
-          <Chip label="Indice: 72" tone="gold" />
-        </View>
-        <Text style={styles.cardBody}>Voir la santé environnementale du quartier.</Text>
-      </Card>
+        <Pressable onPress={() => navigation.navigate('Ecosysteme')}>
+          <Card tone="clay" style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Icon name="globe" color={colors.clay} size={20} />
+              <Text style={styles.cardTitle}>Écosystème</Text>
+              <Chip label="Bon" tone="clay" />
+            </View>
+            <Text style={styles.cardBody}>Indice de santé local</Text>
+          </Card>
+        </Pressable>
+      </View>
 
-      <Button label="Ouvrir l'assistant Kernel" onPress={() => {}} variant="primary" />
-      <Button label="Voir les paramètres" onPress={() => {}} variant="secondary" />
+      <Text style={styles.sectionTitle}>Activité récente</Text>
+      <View accessibilityLabel="Activité récente" style={styles.activityList}>
+        <ActivityRow label="Fatou a signalé un point plein" time="2h" />
+        <ActivityRow label="Diagnostic manioc enregistré" time="hier" />
+      </View>
     </ScrollView>
+  );
+}
+
+function ActivityRow({ label, time }: { label: string; time: string }) {
+  return (
+    <View style={styles.activityRow}>
+      <Text style={styles.activityLabel}>{label}</Text>
+      <Text style={styles.activityTime}>{time}</Text>
+    </View>
   );
 }
 
@@ -93,6 +120,9 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.muted,
   },
+  modules: {
+    gap: 12,
+  },
   card: {
     gap: 8,
   },
@@ -112,5 +142,32 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.ink,
     opacity: 0.75,
+  },
+  sectionTitle: {
+    fontFamily: fonts.titleSemiBold,
+    fontSize: fontSize.lg,
+    color: colors.ink,
+    marginTop: 8,
+  },
+  activityList: {
+    gap: 2,
+  },
+  activityRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  activityLabel: {
+    fontFamily: fonts.body,
+    fontSize: fontSize.sm,
+    color: colors.ink,
+    flex: 1,
+  },
+  activityTime: {
+    fontFamily: fonts.body,
+    fontSize: fontSize.xs,
+    color: colors.muted,
   },
 });

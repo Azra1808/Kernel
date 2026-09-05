@@ -43,12 +43,13 @@ export default function RootNavigator() {
           headerShown: false,
           tabBarActiveTintColor: colors.gold,
           tabBarInactiveTintColor: '#8B9187',
+          tabBarHideOnKeyboard: true,
           tabBarStyle: {
             backgroundColor: colors.shell,
             borderTopWidth: 0,
-            height: 64,
+            height: 70,
             paddingTop: 8,
-            paddingBottom: 8,
+            paddingBottom: 10,
           },
           tabBarLabelStyle: {
             fontFamily: fonts.bodySemiBold,

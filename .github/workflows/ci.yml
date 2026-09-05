@@ -1,0 +1,306 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository-checks:
+    name: Repository checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Verify required project files
+        shell: bash
+        run: |
+          set -euo pipefail
+          required_paths=(
+            README.md
+            app
+            assets/design/kernel-mockup.html
+            docs/Kernel_Documentation.docx
+            docs/Kernel_Repartition_Taches.xlsx
+          )
+
+          for path in "${required_paths[@]}"; do
+            if [[ ! -e "$path" ]]; then
+              echo "::error file=$path::Required project path is missing"
+              exit 1
+            fi
+          done
+
+      - name: Reject secrets and temporary editor files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tracked_secrets="$(git ls-files \
+            | grep -E '(^|/)\.env($|\.)|\.(jks|p8|p12|key|mobileprovision)$' \
+            | grep -Ev '(^|/)\.env\.example$' \
+            || true)"
+          if [[ -n "$tracked_secrets" ]]; then
+            echo "::error::Potential secrets are tracked by Git"
+            printf '%s\n' "$tracked_secrets"
+            exit 1
+          fi
+
+          tracked_temporary_files="$(git ls-files | grep -E '(^|/)~\$|\.(tmp|swp)$' || true)"
+          if [[ -n "$tracked_temporary_files" ]]; then
+            echo "::error::Temporary editor files are tracked by Git"
+            printf '%s\n' "$tracked_temporary_files"
+            exit 1
+          fi
+
+          # Le fichier de règles contient volontairement les motifs de détection
+          # eux-mêmes : il doit être exclu pour éviter un faux positif réflexif.
+          leaked_privileged_keys="$(git grep -I -n -E 'sb_secret_[A-Za-z0-9_-]{12,}|service_role[^[:space:]]*[=:][^[:space:]]{12,}|postgresql://[^[:space:]]+:[^[:space:]@]+@' -- . ':!docs/*' ':!.github/workflows/ci.yml' || true)"
+          if [[ -n "$leaked_privileged_keys" ]]; then
+            echo "::error::A privileged Supabase key or database connection string is tracked by Git"
+            printf '%s\n' "$leaked_privileged_keys"
+            exit 1
+          fi
+
+      - name: Verify Office document integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -tqq docs/Kernel_Documentation.docx
+          unzip -tqq docs/Kernel_Repartition_Taches.xlsx
+
+      - name: Verify HTML mockup
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Eiq '<!doctype html>' assets/design/kernel-mockup.html
+          grep -Eiq '<title>[^<]*Kernel' assets/design/kernel-mockup.html
+
+  database-contract:
+    name: Database contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Verify migration assets and security boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          migration="supabase/migrations/20260903000100_ecosystem_aggregation.sql"
+          rollback="supabase/rollbacks/20260903000100_ecosystem_aggregation.down.sql"
+          test_file="supabase/tests/database/ecosystem_aggregation.test.sql"
+
+          for path in "$migration" "$rollback" "$test_file"; do
+            [[ -s "$path" ]] || { echo "::error file=$path::Required database asset is missing or empty"; exit 1; }
+          done
+
+          grep -Eq 'security definer' "$migration"
+          grep -Eq "set search_path = ''" "$migration"
+          grep -Eq 'revoke all on table public.ecosystem_signals from anon, authenticated' "$migration"
+          grep -Eq 'grant execute.*authenticated' "$migration"
+          grep -Eq 'select plan\(' "$test_file"
+
+          if ! compgen -G 'supabase/migrations/*initial*schema*.sql' > /dev/null; then
+            echo "::notice::The upstream initial Supabase schema is not versioned yet; pgTAP execution remains blocked until Azra exports task 3. Static security checks passed."
+          fi
+
+  app-quality:
+    name: App quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Detect the Expo application
+        id: app
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! -f app/package.json ]]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No app/package.json yet; application checks are skipped."
+            exit 0
+          fi
+
+          echo "present=true" >> "$GITHUB_OUTPUT"
+          if [[ ! -f app/package-lock.json ]]; then
+            echo "::error file=app/package-lock.json::A lockfile is required for reproducible CI installs"
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        if: steps.app.outputs.present == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        if: steps.app.outputs.present == 'true'
+        working-directory: app
+        run: npm ci
+
+      - name: Verify quality scripts
+        if: steps.app.outputs.present == 'true'
+        working-directory: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const scripts=require('./package.json').scripts||{}; const required=['lint','typecheck','test','build']; const missing=required.filter((name)=>!scripts[name]); if(missing.length){console.error('Missing npm scripts: '+missing.join(', ')); process.exit(1)}"
+
+      - name: Lint
+        if: steps.app.outputs.present == 'true'
+        working-directory: app
+        run: npm run lint
+
+      - name: Type-check
+        if: steps.app.outputs.present == 'true'
+        working-directory: app
+        run: npm run typecheck
+
+      - name: Run tests
+        if: steps.app.outputs.present == 'true'
+        working-directory: app
+        env:
+          CI: true
+        run: npm test
+
+      - name: Build
+        if: steps.app.outputs.present == 'true'
+        working-directory: app
+        env:
+          CI: true
+        run: npm run build
+
+      - name: Upload available test and build artifacts
+        if: always() && steps.app.outputs.present == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: app-quality-${{ github.sha }}
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            app/coverage/
+            app/dist/
+            app/web-build/
+
+  android-apk:
+    name: Android APK (main)
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs:
+      - repository-checks
+      - database-contract
+      - app-quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Detect APK build prerequisites
+        id: apk
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          missing=()
+          [[ -f app/package.json ]] || missing+=("app/package.json")
+          [[ -f app/package-lock.json ]] || missing+=("app/package-lock.json")
+
+          expo_config=false
+          for config in app/app.json app/app.config.js app/app.config.ts; do
+            if [[ -f "$config" ]]; then
+              expo_config=true
+              break
+            fi
+          done
+          [[ "$expo_config" == true ]] || missing+=("an Expo app config")
+
+          if (( ${#missing[@]} > 0 )); then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::APK build is waiting for: ${missing[*]}"
+            exit 0
+          fi
+
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        if: steps.apk.outputs.ready == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Set up Java
+        if: steps.apk.outputs.ready == 'true'
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install application dependencies
+        if: steps.apk.outputs.ready == 'true'
+        working-directory: app
+        run: npm ci
+
+      - name: Verify Expo dependency
+        if: steps.apk.outputs.ready == 'true'
+        working-directory: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const p=require('./package.json'); const deps={...(p.dependencies||{}),...(p.devDependencies||{})}; if(!deps.expo){console.error('The Expo dependency is required to build the APK'); process.exit(1)}"
+
+      - name: Generate the Android project
+        if: steps.apk.outputs.ready == 'true'
+        working-directory: app
+        env:
+          CI: true
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Set up Gradle
+        if: steps.apk.outputs.ready == 'true'
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build installable debug APK
+        if: steps.apk.outputs.ready == 'true'
+        working-directory: app/android
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon :app:assembleDebug
+          mkdir -p ../artifacts
+          cp app/build/outputs/apk/debug/app-debug.apk "../artifacts/kernel-${GITHUB_SHA}.apk"
+
+      - name: Upload APK
+        if: steps.apk.outputs.ready == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: kernel-android-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 14
+          path: app/artifacts/*.apk

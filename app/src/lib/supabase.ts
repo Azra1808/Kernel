@@ -1,23 +1,21 @@
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Variables Supabase manquantes. Copie .env.example en .env à la racine de app/ et renseigne EXPO_PUBLIC_SUPABASE_URL et EXPO_PUBLIC_SUPABASE_ANON_KEY.'
-  );
-}
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabasePublishableKey);
 
-// Client unique de l'app. N'utilise QUE la clé "anon" (protégée par la RLS
-// définie côté Supabase) — jamais la clé service_role côté client.
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage: AsyncStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: false,
-  },
-});
+// Le client reste optionnel afin que le mode démo hors ligne, les tests et le
+// build CI fonctionnent sans secret. Seule une clé publishable est acceptée ici.
+export const supabase: SupabaseClient | null = isSupabaseConfigured
+  ? createClient(supabaseUrl!, supabasePublishableKey!, {
+      auth: {
+        storage: AsyncStorage,
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: false,
+      },
+    })
+  : null;

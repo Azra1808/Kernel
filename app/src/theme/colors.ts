@@ -1,10 +1,4 @@
-/**
- * Palette extraite de la maquette validée (assets/design/kernel-mockup.html).
- * Ces valeurs seront étendues en un vrai design system à la tâche n°5
- * (composants réutilisables : carte, bouton, chip, barre de statut).
- * Ne pas dupliquer ces couleurs ailleurs dans le code — toujours importer
- * depuis ce fichier pour garder une seule source de vérité.
- */
+/** Source de vérité visuelle extraite de la maquette validée. */
 export const colors = {
   ink: '#1C1A15',
   paper: '#F6F0E2',
@@ -19,10 +13,40 @@ export const colors = {
   shell: '#20241F',
   shell2: '#2B3128',
   muted: '#8C8268',
+  body: '#55503F',
+  white: '#FFFFFF',
+  warning: '#8A5F1B',
 } as const;
 
 export const radius = {
   lg: 26,
   md: 16,
   sm: 10,
+} as const;
+
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  xxl: 32,
+} as const;
+
+export const fontFamily = {
+  body: 'SpaceGrotesk_400Regular',
+  bodyMedium: 'SpaceGrotesk_500Medium',
+  bodySemibold: 'SpaceGrotesk_600SemiBold',
+  displaySemibold: 'Fraunces_600SemiBold',
+  displayBold: 'Fraunces_700Bold',
+} as const;
+
+export const shadow = {
+  card: {
+    shadowColor: colors.ink,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 2,
+  },
 } as const;
