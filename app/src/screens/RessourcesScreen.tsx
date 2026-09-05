@@ -101,7 +101,7 @@ export default function RessourcesScreen() {
         }
         ListEmptyComponent={
           <Text style={styles.emptyText}>
-            Aucun point de collecte en cache pour l'instant. Tire vers le bas pour réessayer.
+            Aucun point de collecte en cache pour l’instant. Tire vers le bas pour réessayer.
           </Text>
         }
         renderItem={({ item }) => (
