@@ -57,12 +57,24 @@ export default function RessourcesScreen() {
     }
   }, [loadFromCache]);
 
-  useEffect(() => {
-    refresh();
+    useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        await fetchAndCacheWastePoints();
+      } finally {
+        if (active) await loadFromCache();
+      }
+    })();
+
     const unsubscribe = NetInfo.addEventListener((state) => {
       setIsOnline(Boolean(state.isConnected && state.isInternetReachable !== false));
     });
-    return unsubscribe;
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

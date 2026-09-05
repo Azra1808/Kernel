@@ -30,7 +30,7 @@ export default function AccueilScreen({ navigation }: Props) {
           <Text style={styles.brand}>Kernel</Text>
         </View>
         <Text style={styles.title}>Bonjour, Awa</Text>
-        <Text style={styles.subtitle}>Sabalibougou · aujourd'hui</Text>
+        <Text style={styles.subtitle}>Sabalibougou · aujourd’hui</Text>
       </View>
 
       <View style={styles.modules}>
