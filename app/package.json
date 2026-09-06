@@ -11,6 +11,7 @@
     "@react-native-community/netinfo": "^11.4.1",
     "@react-navigation/bottom-tabs": "^7.18.18",
     "@react-navigation/native": "^7.3.18",
+    "@react-navigation/native-stack": "^7.18.10",
     "@supabase/supabase-js": "^2.114.0",
     "expo": "~57.0.19",
     "expo-asset": "~57.0.16",
@@ -50,6 +51,7 @@
   },
   "jest": {
     "preset": "jest-expo",
+    "setupFiles": ["<rootDir>/jest.setup.js"],
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",
       "!src/**/*.d.ts"

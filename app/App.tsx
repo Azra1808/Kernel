@@ -18,7 +18,7 @@ import {
 } from '@expo-google-fonts/space-grotesk';
 
 import RootNavigator from './src/navigation/RootNavigator';
-import { colors } from './src/theme/colors';
+import { PreferencesProvider, usePreferences } from './src/theme/PreferencesContext';
 import { initDatabase } from './src/db/database';
 import { registerAllSyncableTables } from './src/sync/registerTables';
 import { useAutoSync } from './src/sync/useAutoSync';
@@ -56,15 +56,28 @@ export default function App() {
 
   const appReady = fontsLoaded && dbReady;
 
-  const onLayoutRootView = useCallback(async () => {
-    if (appReady) {
-      await SplashScreen.hideAsync();
-    }
-  }, [appReady]);
-
   if (!appReady) {
     return null;
   }
+
+  // PreferencesProvider (tâche n°19) doit envelopper tout ce qui affiche
+  // des couleurs dynamiques — d'où le découpage en AppShell ci-dessous,
+  // qui peut alors appeler usePreferences().
+  return (
+    <PreferencesProvider>
+      <AppShell />
+    </PreferencesProvider>
+  );
+}
+
+function AppShell() {
+  const { colors, ready } = usePreferences();
+
+  const onLayoutRootView = useCallback(async () => {
+    if (ready) {
+      await SplashScreen.hideAsync();
+    }
+  }, [ready]);
 
   return (
     <SafeAreaProvider>

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
-import { colors } from '../theme/colors';
+import { type Palette } from '../theme/palettes';
+import { usePreferences } from '../theme/PreferencesContext';
 import { fonts, fontSize } from '../theme/typography';
 import { Icon } from '../theme/Icon';
 import { Card } from '../components/Card';
@@ -23,17 +24,22 @@ const STATUS_LABEL: Record<WasteStatus, string> = {
   vide: 'Vide',
 };
 
+// Couleurs de STATUT — fixes, ne suivent pas le thème d'accent choisi
+// dans les Paramètres (voir theme/palettes.ts).
 const STATUS_TONE: Record<WasteStatus, ChipTone> = {
   plein: 'clay',
   partiel: 'gold',
   vide: 'moss',
 };
 
-// Module Ressources — tâches n°12 (liste des points de collecte) et n°13
-// (formulaire de signalement). Le tri par urgence réel arrive à la
-// tâche n°14 ; en attendant, getWastePointsWithStatus() applique un tri
-// simple (plein > partiel > vide > jamais signalé).
+// Module Ressources — tâches n°12 (liste des points de collecte), n°13
+// (formulaire de signalement) et n°14 (priorisation par score — voir
+// computePriorityScore dans data/wastePoints.ts). Habillage aligné sur
+// le système de thème de la tâche n°19 (usePreferences).
 export default function RessourcesScreen() {
+  const { colors, fontScale } = usePreferences();
+  const styles = useMemo(() => createStyles(colors, fontScale), [colors, fontScale]);
+
   const [points, setPoints] = useState<WastePointWithStatus[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
@@ -158,76 +164,78 @@ export default function RessourcesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.paper,
-  },
-  content: {
-    padding: 20,
-    gap: 12,
-  },
-  headerBlock: {
-    gap: 8,
-    marginBottom: 4,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 6,
-  },
-  title: {
-    fontFamily: fonts.titleBold,
-    fontSize: fontSize.xxl,
-    color: colors.ink,
-  },
-  subtitle: {
-    fontFamily: fonts.body,
-    fontSize: fontSize.sm,
-    color: colors.muted,
-  },
-  emptyText: {
-    fontFamily: fonts.body,
-    fontSize: fontSize.sm,
-    color: colors.muted,
-    textAlign: 'center',
-    marginTop: 24,
-  },
-  pointCard: {
-    gap: 8,
-  },
-  pointHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  pointName: {
-    fontFamily: fonts.bodySemiBold,
-    fontSize: fontSize.md,
-    color: colors.ink,
-    flex: 1,
-  },
-  pointMeta: {
-    fontFamily: fonts.body,
-    fontSize: fontSize.xs,
-    color: colors.muted,
-  },
-  pointNote: {
-    fontFamily: fonts.body,
-    fontSize: fontSize.sm,
-    color: colors.ink,
-    opacity: 0.8,
-    fontStyle: 'italic',
-  },
-  pendingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  pendingText: {
-    fontFamily: fonts.body,
-    fontSize: fontSize.xs,
-    color: colors.muted,
-  },
-});
+function createStyles(colors: Palette, fontScale: number) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.paper,
+    },
+    content: {
+      padding: 20,
+      gap: 12,
+    },
+    headerBlock: {
+      gap: 8,
+      marginBottom: 4,
+    },
+    brandRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 6,
+    },
+    title: {
+      fontFamily: fonts.titleBold,
+      fontSize: fontSize.xxl * fontScale,
+      color: colors.ink,
+    },
+    subtitle: {
+      fontFamily: fonts.body,
+      fontSize: fontSize.sm * fontScale,
+      color: colors.muted,
+    },
+    emptyText: {
+      fontFamily: fonts.body,
+      fontSize: fontSize.sm * fontScale,
+      color: colors.muted,
+      textAlign: 'center',
+      marginTop: 24,
+    },
+    pointCard: {
+      gap: 8,
+    },
+    pointHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    pointName: {
+      fontFamily: fonts.bodySemiBold,
+      fontSize: fontSize.md * fontScale,
+      color: colors.ink,
+      flex: 1,
+    },
+    pointMeta: {
+      fontFamily: fonts.body,
+      fontSize: fontSize.xs * fontScale,
+      color: colors.muted,
+    },
+    pointNote: {
+      fontFamily: fonts.body,
+      fontSize: fontSize.sm * fontScale,
+      color: colors.ink,
+      opacity: 0.8,
+      fontStyle: 'italic',
+    },
+    pendingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    pendingText: {
+      fontFamily: fonts.body,
+      fontSize: fontSize.xs * fontScale,
+      color: colors.muted,
+    },
+  });
+}
