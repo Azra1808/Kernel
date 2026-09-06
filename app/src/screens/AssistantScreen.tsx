@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -11,19 +11,14 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { colors, radius } from '../theme/colors';
+import { radius, type Palette } from '../theme/palettes';
+import { usePreferences } from '../theme/PreferencesContext';
 import { fonts, fontSize } from '../theme/typography';
 import { Icon } from '../theme/Icon';
 import type { RootTabParamList } from '../navigation/RootNavigator';
 import { getIntentById, matchIntent } from '../lib/assistant/engine';
 import type { Lang, QuickReply } from '../lib/assistant/types';
 import { FALLBACK_RESPONSE } from '../lib/assistant/intents';
-
-// TODO (tâche n°19) : remplacer par la vraie préférence utilisateur
-// (user_settings.language) une fois l'écran Paramètres branché à l'auth.
-// Le contenu anglais existe déjà dans intents.ts — seul ce point de
-// lecture doit changer.
-const CURRENT_LANG: Lang = 'fr';
 
 type ChatMessage = {
   id: string;
@@ -38,26 +33,39 @@ function nextId() {
   return `m${messageCounter}-${Date.now()}`;
 }
 
-const WELCOME: ChatMessage = {
-  id: nextId(),
-  sender: 'bot',
-  content:
-    "Bonjour ! Je suis l'assistant Kernel. Pose-moi une question sur tes plantes, les déchets, ou l'écosystème de ton quartier.",
-  quickReplies: [
-    { label: { fr: 'Ma plante est malade', en: 'My plant is sick' }, intentId: 'plant_disease' },
-    { label: { fr: 'Signaler un déchet', en: 'Report waste' }, intentId: 'waste_report' },
-    { label: { fr: "Voir l'écosystème", en: 'View ecosystem' }, intentId: 'ecosystem_info' },
-  ],
-};
+function buildWelcome(lang: Lang): ChatMessage {
+  const content =
+    lang === 'fr'
+      ? "Bonjour ! Je suis l'assistant Kernel. Pose-moi une question sur tes plantes, les déchets, ou l'écosystème de ton quartier."
+      : "Hello! I'm the Kernel assistant. Ask me about your plants, waste reporting, or your neighborhood's ecosystem.";
+  return {
+    id: nextId(),
+    sender: 'bot',
+    content,
+    quickReplies: [
+      { label: { fr: 'Ma plante est malade', en: 'My plant is sick' }, intentId: 'plant_disease' },
+      { label: { fr: 'Signaler un déchet', en: 'Report waste' }, intentId: 'waste_report' },
+      { label: { fr: "Voir l'écosystème", en: 'View ecosystem' }, intentId: 'ecosystem_info' },
+    ],
+  };
+}
 
-// Assistant Kernel (Azra) — tâche n°17 : moteur hors ligne.
+// Assistant Kernel (Azra) — tâche n°17 : moteur hors ligne, désormais
+// branché à la vraie préférence de langue (tâche n°19, PreferencesContext)
+// au lieu d'une constante CURRENT_LANG figée. Le contenu anglais existait
+// déjà dans intents.ts depuis la tâche 17 — seul ce point de lecture a
+// changé, comme prévu par le TODO laissé à l'époque.
+//
 // La réponse est calculée localement (src/lib/assistant/engine.ts), sans
-// connexion requise. L'intégration API Claude pour les questions plus
-// complexes (tâche n°18) et la persistance dans chat_messages (liée au
-// module offline de la tâche n°7) viendront s'ajouter à cet écran, pas le
+// connexion requise. L'intégration API pour les questions plus complexes
+// (tâche n°18) et la persistance dans chat_messages (liée au module
+// offline de la tâche n°7) viendront s'ajouter à cet écran, pas le
 // remplacer.
 export default function AssistantScreen() {
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
+  const { colors, fontScale, language } = usePreferences();
+  const styles = useMemo(() => createStyles(colors, fontScale), [colors, fontScale]);
+
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [buildWelcome(language)]);
   const [draft, setDraft] = useState('');
   const listRef = useRef<FlatList<ChatMessage>>(null);
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
@@ -68,7 +76,7 @@ export default function AssistantScreen() {
 
   const respondTo = useCallback(
     (userText: string) => {
-      const { response, intent } = matchIntent(userText, CURRENT_LANG);
+      const { response, intent } = matchIntent(userText, language);
       const botMessage: ChatMessage = {
         id: nextId(),
         sender: 'bot',
@@ -78,7 +86,7 @@ export default function AssistantScreen() {
       setMessages((prev) => [...prev, botMessage]);
       scrollToEnd();
     },
-    [scrollToEnd]
+    [language, scrollToEnd]
   );
 
   const sendUserMessage = useCallback(
@@ -108,18 +116,18 @@ export default function AssistantScreen() {
         // On affiche la puce comme un message utilisateur pour garder un
         // fil de conversation lisible, puis on répond directement avec
         // l'intention ciblée (pas besoin de repasser par le matching).
-        const userMessage: ChatMessage = { id: nextId(), sender: 'user', content: reply.label[CURRENT_LANG] };
+        const userMessage: ChatMessage = { id: nextId(), sender: 'user', content: reply.label[language] };
         const botMessage: ChatMessage = {
           id: nextId(),
           sender: 'bot',
-          content: intent?.responses[CURRENT_LANG][0] ?? FALLBACK_RESPONSE[CURRENT_LANG],
+          content: intent?.responses[language][0] ?? FALLBACK_RESPONSE[language],
           quickReplies: intent?.quickReplies,
         };
         setMessages((prev) => [...prev, userMessage, botMessage]);
         scrollToEnd();
       }
     },
-    [navigation, scrollToEnd]
+    [language, navigation, scrollToEnd]
   );
 
   return (
@@ -133,13 +141,15 @@ export default function AssistantScreen() {
         data={messages}
         keyExtractor={(m) => m.id}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => <MessageBubble message={item} onQuickReply={handleQuickReply} />}
+        renderItem={({ item }) => (
+          <MessageBubble message={item} onQuickReply={handleQuickReply} styles={styles} language={language} />
+        )}
       />
 
       <View style={styles.inputBar}>
         <TextInput
           style={styles.input}
-          placeholder="Écris ta question..."
+          placeholder={language === 'fr' ? 'Écris ta question...' : 'Type your question...'}
           placeholderTextColor={colors.muted}
           value={draft}
           onChangeText={setDraft}
@@ -151,7 +161,7 @@ export default function AssistantScreen() {
           onPress={() => sendUserMessage(draft)}
           disabled={!draft.trim()}
         >
-          <Icon name="send" color={colors.paper} size={18} />
+          <Icon name="send" color={colors.white} size={18} />
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -161,9 +171,13 @@ export default function AssistantScreen() {
 function MessageBubble({
   message,
   onQuickReply,
+  styles,
+  language,
 }: {
   message: ChatMessage;
   onQuickReply: (reply: QuickReply) => void;
+  styles: ReturnType<typeof createStyles>;
+  language: Lang;
 }) {
   const isBot = message.sender === 'bot';
   return (
@@ -177,11 +191,11 @@ function MessageBubble({
         <View style={styles.quickReplies}>
           {message.quickReplies.map((reply) => (
             <Pressable
-              key={reply.label[CURRENT_LANG]}
+              key={reply.label[language]}
               style={styles.quickReplyChip}
               onPress={() => onQuickReply(reply)}
             >
-              <Text style={styles.quickReplyLabel}>{reply.label[CURRENT_LANG]}</Text>
+              <Text style={styles.quickReplyLabel}>{reply.label[language]}</Text>
             </Pressable>
           ))}
         </View>
@@ -190,92 +204,94 @@ function MessageBubble({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.paper,
-  },
-  list: {
-    padding: 16,
-    gap: 10,
-  },
-  bubbleRow: {
-    marginBottom: 4,
-    maxWidth: '85%',
-  },
-  rowLeft: {
-    alignSelf: 'flex-start',
-  },
-  rowRight: {
-    alignSelf: 'flex-end',
-  },
-  bubble: {
-    borderRadius: radius.md,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-  },
-  bubbleBot: {
-    backgroundColor: colors.paperWarm,
-    borderWidth: 1,
-    borderColor: colors.line,
-  },
-  bubbleUser: {
-    backgroundColor: colors.clay,
-  },
-  bubbleText: {
-    fontFamily: fonts.body,
-    fontSize: fontSize.base,
-    lineHeight: 20,
-  },
-  bubbleTextBot: {
-    color: colors.ink,
-  },
-  bubbleTextUser: {
-    color: colors.paper,
-  },
-  quickReplies: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 6,
-  },
-  quickReplyChip: {
-    borderWidth: 1.5,
-    borderColor: colors.clay,
-    borderRadius: 100,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  quickReplyLabel: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: fontSize.xs,
-    color: colors.clay,
-  },
-  inputBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
-    backgroundColor: colors.paper,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: colors.paperWarm,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontFamily: fonts.body,
-    fontSize: fontSize.base,
-    color: colors.ink,
-  },
-  sendButton: {
-    backgroundColor: colors.clay,
-    borderRadius: radius.md,
-    width: 42,
-    height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+function createStyles(colors: Palette, fontScale: number) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.paper,
+    },
+    list: {
+      padding: 16,
+      gap: 10,
+    },
+    bubbleRow: {
+      marginBottom: 4,
+      maxWidth: '85%',
+    },
+    rowLeft: {
+      alignSelf: 'flex-start',
+    },
+    rowRight: {
+      alignSelf: 'flex-end',
+    },
+    bubble: {
+      borderRadius: radius.md,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+    },
+    bubbleBot: {
+      backgroundColor: colors.paperWarm,
+      borderWidth: 1,
+      borderColor: colors.line,
+    },
+    bubbleUser: {
+      backgroundColor: colors.accent,
+    },
+    bubbleText: {
+      fontFamily: fonts.body,
+      fontSize: fontSize.base * fontScale,
+      lineHeight: 20,
+    },
+    bubbleTextBot: {
+      color: colors.ink,
+    },
+    bubbleTextUser: {
+      color: colors.white,
+    },
+    quickReplies: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+      marginTop: 6,
+    },
+    quickReplyChip: {
+      borderWidth: 1.5,
+      borderColor: colors.accent,
+      borderRadius: 100,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+    },
+    quickReplyLabel: {
+      fontFamily: fonts.bodyMedium,
+      fontSize: fontSize.xs * fontScale,
+      color: colors.accent,
+    },
+    inputBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      padding: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
+      backgroundColor: colors.paper,
+    },
+    input: {
+      flex: 1,
+      backgroundColor: colors.paperWarm,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontFamily: fonts.body,
+      fontSize: fontSize.base * fontScale,
+      color: colors.ink,
+    },
+    sendButton: {
+      backgroundColor: colors.accent,
+      borderRadius: radius.md,
+      width: 42,
+      height: 42,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });
+}
