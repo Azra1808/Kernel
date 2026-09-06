@@ -57,7 +57,7 @@ export default function RessourcesScreen() {
     }
   }, [loadFromCache]);
 
-    useEffect(() => {
+  useEffect(() => {
     let active = true;
     (async () => {
       try {
@@ -127,6 +127,11 @@ export default function RessourcesScreen() {
               )}
             </View>
             {item.neighborhood ? <Text style={styles.pointMeta}>{item.neighborhood}</Text> : null}
+            {item.recentReportCount > 1 ? (
+              <Text style={styles.pointMeta}>
+                {item.recentReportCount} signalements cette semaine
+              </Text>
+            ) : null}
             {item.latestNote ? <Text style={styles.pointNote}>« {item.latestNote} »</Text> : null}
             {item.pendingCount > 0 ? (
               <View style={styles.pendingRow}>
