@@ -15,6 +15,10 @@ export interface WastePointWithStatus {
   latestStatus: WasteStatus | null;
   latestNote: string | null;
   latestReportAt: string | null;
+  /** Nombre de signalements reçus au cours des 7 derniers jours. */
+  recentReportCount: number;
+  /** Score de priorité — voir computePriorityScore() ci-dessous. */
+  priorityScore: number;
   /** Nombre de signalements locaux pas encore synchronisés pour ce point. */
   pendingCount: number;
 }
@@ -42,12 +46,48 @@ export async function fetchAndCacheWastePoints(): Promise<void> {
   }
 }
 
+const SEVERITY_WEIGHT: Record<WasteStatus, number> = {
+  plein: 3,
+  partiel: 2,
+  vide: 1,
+};
+
+/**
+ * Score de priorité — tâche n°14.
+ *
+ * Combine trois signaux, dans cet ordre d'importance :
+ *  1. Gravité du dernier statut connu (plein > partiel > vide > jamais signalé).
+ *  2. Nombre de signalements dans les 7 derniers jours — un point signalé
+ *     plusieurs fois récemment indique un vrai problème récurrent, pas
+ *     juste un signalement isolé.
+ *  3. Fraîcheur du dernier signalement — à gravité égale, un signalement
+ *     très récent (< 48h) passe légèrement devant un signalement ancien.
+ *
+ * Les poids (×100 / ×10 / bonus max 48) garantissent que la gravité prime
+ * toujours sur le nombre de signalements, qui prime toujours sur la
+ * fraîcheur — pas d'effet de bord où un "vide" signalé 5 fois dépasserait
+ * un "plein" signalé une seule fois.
+ */
+function computePriorityScore(
+  latestStatus: WasteStatus | null,
+  latestReportAt: string | null,
+  recentReportCount: number
+): number {
+  const severity = latestStatus ? SEVERITY_WEIGHT[latestStatus] : 0;
+
+  let recencyBonus = 0;
+  if (latestReportAt) {
+    const hoursSince = (Date.now() - new Date(latestReportAt).getTime()) / (1000 * 60 * 60);
+    recencyBonus = Math.max(0, 48 - hoursSince);
+  }
+
+  return severity * 100 + recentReportCount * 10 + recencyBonus;
+}
+
 /**
  * Lit les points de collecte depuis le cache local, enrichis avec le
- * statut du dernier signalement et le nombre de signalements en attente
- * de synchro. Tri temporaire : points signalés "plein" en premier, puis
- * "partiel", puis "vide", puis jamais signalés — ceci sera remplacé par
- * le vrai score de priorisation de la tâche n°14.
+ * statut du dernier signalement, le nombre de signalements en attente de
+ * synchro, et triés par score de priorité réel (voir computePriorityScore).
  */
 export async function getWastePointsWithStatus(): Promise<WastePointWithStatus[]> {
   const db = await getDatabase();
@@ -63,6 +103,16 @@ export async function getWastePointsWithStatus(): Promise<WastePointWithStatus[]
   `);
   const latestByPoint = new Map(latestReports.map((r) => [r.waste_point_id, r]));
 
+  const sevenDaysAgoIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const recentCountRows = await db.getAllAsync<any>(
+    `SELECT waste_point_id, COUNT(*) as recent_count
+     FROM waste_reports
+     WHERE created_at >= ?
+     GROUP BY waste_point_id;`,
+    [sevenDaysAgoIso]
+  );
+  const recentCountByPoint = new Map(recentCountRows.map((r) => [r.waste_point_id, r.recent_count]));
+
   const pendingRows = await db.getAllAsync<any>(`
     SELECT waste_point_id, COUNT(*) as pending_count
     FROM waste_reports
@@ -71,30 +121,28 @@ export async function getWastePointsWithStatus(): Promise<WastePointWithStatus[]
   `);
   const pendingByPoint = new Map(pendingRows.map((r) => [r.waste_point_id, r.pending_count]));
 
-  const statusRank: Record<string, number> = { plein: 0, partiel: 1, vide: 2 };
-
   const result: WastePointWithStatus[] = points.map((p) => {
     const latest = latestByPoint.get(p.id);
+    const latestStatus = (latest?.status as WasteStatus) ?? null;
+    const latestReportAt = latest?.created_at ?? null;
+    const recentReportCount = recentCountByPoint.get(p.id) ?? 0;
+
     return {
       id: p.id,
       name: p.name,
       neighborhood: p.neighborhood,
       latitude: p.latitude,
       longitude: p.longitude,
-      latestStatus: (latest?.status as WasteStatus) ?? null,
+      latestStatus,
       latestNote: latest?.note ?? null,
-      latestReportAt: latest?.created_at ?? null,
+      latestReportAt,
+      recentReportCount,
+      priorityScore: computePriorityScore(latestStatus, latestReportAt, recentReportCount),
       pendingCount: pendingByPoint.get(p.id) ?? 0,
     };
   });
 
-  result.sort((a, b) => {
-    const rankA = a.latestStatus ? statusRank[a.latestStatus] : 3;
-    const rankB = b.latestStatus ? statusRank[b.latestStatus] : 3;
-    if (rankA !== rankB) return rankA - rankB;
-    // À égalité de statut, le signalement le plus récent d'abord.
-    return (b.latestReportAt ?? '').localeCompare(a.latestReportAt ?? '');
-  });
+  result.sort((a, b) => b.priorityScore - a.priorityScore);
 
   return result;
 }

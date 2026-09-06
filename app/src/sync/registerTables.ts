@@ -48,6 +48,7 @@ export function registerAllSyncableTables(): void {
 
   registerSyncableTable({
     tableName: 'user_settings',
+    orderColumn: 'updated_at',
     toRemotePayload: (row) => ({
       id: row.id,
       user_id: row.user_id,

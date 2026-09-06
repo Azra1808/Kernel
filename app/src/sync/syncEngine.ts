@@ -23,6 +23,12 @@ export interface SyncableTableConfig<TRow extends Record<string, unknown>> {
    * (retire les champs purement locaux comme sync_status / synced_at).
    */
   toRemotePayload: (row: TRow) => Record<string, unknown>;
+  /**
+   * Colonne utilisée pour trier les lignes en attente (les plus anciennes
+   * d'abord). 'created_at' par défaut ; certaines tables (ex. user_settings,
+   * qui représente un état plutôt qu'un historique) utilisent 'updated_at'.
+   */
+  orderColumn?: string;
 }
 
 const registry = new Map<string, SyncableTableConfig<any>>();
@@ -48,8 +54,9 @@ async function syncTable(tableName: string): Promise<SyncResult> {
   }
 
   const db = await getDatabase();
+  const orderColumn = config.orderColumn ?? 'created_at';
   const pendingRows = await db.getAllAsync<any>(
-    `SELECT * FROM ${tableName} WHERE sync_status = 'en_attente' ORDER BY created_at ASC;`
+    `SELECT * FROM ${tableName} WHERE sync_status = 'en_attente' ORDER BY ${orderColumn} ASC;`
   );
 
   const result: SyncResult = { table: tableName, attempted: pendingRows.length, succeeded: 0, failed: 0 };
@@ -99,7 +106,17 @@ export async function runSync(): Promise<SyncResult[]> {
     const tableNames = Array.from(registry.keys());
     const results: SyncResult[] = [];
     for (const tableName of tableNames) {
-      results.push(await syncTable(tableName));
+      try {
+        results.push(await syncTable(tableName));
+      } catch (err) {
+        // Une table dont la requête échoue (ex. colonne manquante, table
+        // pas encore utilisée) ne doit jamais empêcher les autres tables
+        // de se synchroniser normalement.
+        if (__DEV__) {
+          console.warn(`[sync] table "${tableName}" ignorée (erreur) :`, err);
+        }
+        results.push({ table: tableName, attempted: 0, succeeded: 0, failed: 0 });
+      }
     }
     return results;
   })();
