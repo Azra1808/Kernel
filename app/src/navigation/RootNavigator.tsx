@@ -1,6 +1,8 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { useEffect } from 'react';
 import { usePreferences } from '../theme/PreferencesContext';
 import { fonts, fontSize } from '../theme/typography';
 import { Icon, IconName } from '../theme/Icon';
@@ -41,6 +43,31 @@ const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
   Assistant: 'chat',
 };
 
+// Équivalent "hover" pour la tabbar : l'icône rebondit légèrement quand
+// son onglet devient actif — seul repère visuel qui bougeait pas du tout
+// avant (tâche n°19 suite / anticipe la tâche n°23).
+function AnimatedTabIcon({ name, color, size, focused }: { name: IconName; color: string; size: number; focused: boolean }) {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (focused) {
+      scale.value = withSpring(1.18, { damping: 8, stiffness: 260 }, () => {
+        scale.value = withSpring(1, { damping: 10, stiffness: 220 });
+      });
+    }
+  }, [focused, scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Icon name={name} color={color} size={size} />
+    </Animated.View>
+  );
+}
+
 function Tabs() {
   const { colors } = usePreferences();
 
@@ -62,8 +89,13 @@ function Tabs() {
           fontFamily: fonts.bodySemiBold,
           fontSize: fontSize.xs,
         },
-        tabBarIcon: ({ color, size }) => (
-          <Icon name={TAB_ICONS[route.name as keyof RootTabParamList]} color={color} size={size - 2} />
+        tabBarIcon: ({ color, size, focused }) => (
+          <AnimatedTabIcon
+            name={TAB_ICONS[route.name as keyof RootTabParamList]}
+            color={color}
+            size={size - 2}
+            focused={focused}
+          />
         ),
       })}
     >
