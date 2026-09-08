@@ -68,7 +68,7 @@ const SEVERITY_WEIGHT: Record<WasteStatus, number> = {
  * fraîcheur — pas d'effet de bord où un "vide" signalé 5 fois dépasserait
  * un "plein" signalé une seule fois.
  */
-function computePriorityScore(
+export function computePriorityScore(
   latestStatus: WasteStatus | null,
   latestReportAt: string | null,
   recentReportCount: number
