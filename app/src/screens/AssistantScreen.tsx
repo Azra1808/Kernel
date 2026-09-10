@@ -19,12 +19,15 @@ import type { RootTabParamList } from '../navigation/RootNavigator';
 import { getIntentById, matchIntent } from '../lib/assistant/engine';
 import type { Lang, QuickReply } from '../lib/assistant/types';
 import { FALLBACK_RESPONSE } from '../lib/assistant/intents';
+import { askAssistantOnline } from '../lib/assistantOnline';
+import { AnimatedPressable } from '../components/AnimatedPressable';
 
 type ChatMessage = {
   id: string;
   sender: 'user' | 'bot';
   content: string;
   quickReplies?: QuickReply[];
+  pending?: boolean;
 };
 
 let messageCounter = 0;
@@ -50,17 +53,13 @@ function buildWelcome(lang: Lang): ChatMessage {
   };
 }
 
-// Assistant Kernel (Azra) — tâche n°17 : moteur hors ligne, désormais
-// branché à la vraie préférence de langue (tâche n°19, PreferencesContext)
-// au lieu d'une constante CURRENT_LANG figée. Le contenu anglais existait
-// déjà dans intents.ts depuis la tâche 17 — seul ce point de lecture a
-// changé, comme prévu par le TODO laissé à l'époque.
-//
-// La réponse est calculée localement (src/lib/assistant/engine.ts), sans
-// connexion requise. L'intégration API pour les questions plus complexes
-// (tâche n°18) et la persistance dans chat_messages (liée au module
-// offline de la tâche n°7) viendront s'ajouter à cet écran, pas le
-// remplacer.
+// Assistant Kernel (Azra) — tâche n°17 (moteur hors ligne) + tâche n°18
+// (intégration en ligne, choix retenu : Gemini via Edge Function
+// Supabase, voir src/lib/assistantOnline.ts). Le moteur local reste
+// toujours essayé EN PREMIER — l'API en ligne n'est appelée que quand
+// aucune intention locale ne correspond, jamais pour remplacer une
+// réponse déjà connue hors ligne (garde le ton/les garde-fous cohérents,
+// et évite un aller-retour réseau inutile la plupart du temps).
 export default function AssistantScreen() {
   const { colors, fontScale, language } = usePreferences();
   const styles = useMemo(() => createStyles(colors, fontScale), [colors, fontScale]);
@@ -75,15 +74,43 @@ export default function AssistantScreen() {
   }, []);
 
   const respondTo = useCallback(
-    (userText: string) => {
+    async (userText: string) => {
       const { response, intent } = matchIntent(userText, language);
-      const botMessage: ChatMessage = {
-        id: nextId(),
+
+      // Intention locale trouvée : réponse immédiate, pas d'appel réseau.
+      if (intent) {
+        const botMessage: ChatMessage = {
+          id: nextId(),
+          sender: 'bot',
+          content: response,
+          quickReplies: intent.quickReplies,
+        };
+        setMessages((prev) => [...prev, botMessage]);
+        scrollToEnd();
+        return;
+      }
+
+      // Aucune intention locale : on tente l'API en ligne (tâche n°18),
+      // avec un indicateur temporaire pendant l'attente.
+      const thinkingId = nextId();
+      const thinkingMessage: ChatMessage = {
+        id: thinkingId,
         sender: 'bot',
-        content: response,
-        quickReplies: intent?.quickReplies,
+        content: language === 'fr' ? 'Kernel réfléchit...' : 'Kernel is thinking...',
+        pending: true,
       };
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages((prev) => [...prev, thinkingMessage]);
+      scrollToEnd();
+
+      const online = await askAssistantOnline(userText, language);
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === thinkingId
+            ? { id: thinkingId, sender: 'bot', content: online.ok ? online.reply : FALLBACK_RESPONSE[language] }
+            : m
+        )
+      );
       scrollToEnd();
     },
     [language, scrollToEnd]
@@ -100,7 +127,9 @@ export default function AssistantScreen() {
       scrollToEnd();
 
       // Petit délai pour que ça ne semble pas instantané/robotique.
-      setTimeout(() => respondTo(trimmed), 300);
+      setTimeout(() => {
+        respondTo(trimmed);
+      }, 300);
     },
     [respondTo, scrollToEnd]
   );
@@ -156,13 +185,15 @@ export default function AssistantScreen() {
           onSubmitEditing={() => sendUserMessage(draft)}
           returnKeyType="send"
         />
-        <Pressable
+        <AnimatedPressable
           style={styles.sendButton}
           onPress={() => sendUserMessage(draft)}
           disabled={!draft.trim()}
+          pressScale={0.9}
+          accessibilityLabel={language === 'fr' ? 'Envoyer' : 'Send'}
         >
           <Icon name="send" color={colors.white} size={18} />
-        </Pressable>
+        </AnimatedPressable>
       </View>
     </KeyboardAvoidingView>
   );
@@ -183,7 +214,13 @@ function MessageBubble({
   return (
     <View style={[styles.bubbleRow, isBot ? styles.rowLeft : styles.rowRight]}>
       <View style={[styles.bubble, isBot ? styles.bubbleBot : styles.bubbleUser]}>
-        <Text style={[styles.bubbleText, isBot ? styles.bubbleTextBot : styles.bubbleTextUser]}>
+        <Text
+          style={[
+            styles.bubbleText,
+            isBot ? styles.bubbleTextBot : styles.bubbleTextUser,
+            message.pending && styles.bubbleTextPending,
+          ]}
+        >
           {message.content}
         </Text>
       </View>
@@ -247,6 +284,10 @@ function createStyles(colors: Palette, fontScale: number) {
     },
     bubbleTextUser: {
       color: colors.white,
+    },
+    bubbleTextPending: {
+      fontStyle: 'italic',
+      opacity: 0.6,
     },
     quickReplies: {
       flexDirection: 'row',
