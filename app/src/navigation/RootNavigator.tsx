@@ -13,6 +13,7 @@ import RessourcesScreen from '../screens/RessourcesScreen';
 import EcosystemeScreen from '../screens/EcosystemeScreen';
 import AssistantScreen from '../screens/AssistantScreen';
 import ParametresScreen from '../screens/ParametresScreen';
+import AuthScreen from '../screens/AuthScreen';
 
 export type RootTabParamList = {
   Accueil: undefined;
@@ -28,6 +29,7 @@ export type RootTabParamList = {
 export type RootStackParamList = {
   Tabs: undefined;
   Parametres: undefined;
+  Auth: undefined;
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -118,6 +120,7 @@ export default function RootNavigator() {
           component={ParametresScreen}
           options={{ presentation: 'modal' }}
         />
+        <Stack.Screen name="Auth" component={AuthScreen} options={{ presentation: 'modal' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
