@@ -19,6 +19,7 @@ export function registerAllSyncableTables(): void {
       confidence: row.confidence,
       advice_text: row.advice_text,
       language: row.language,
+      severity: row.severity,
       created_at: row.created_at,
     }),
   });

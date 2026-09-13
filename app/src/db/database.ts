@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS diagnoses (
   confidence REAL,
   advice_text TEXT,
   language TEXT,
+  severity TEXT,
   sync_status TEXT NOT NULL DEFAULT 'en_attente',
   created_at TEXT NOT NULL,
   synced_at TEXT
@@ -88,6 +89,7 @@ export async function initDatabase(): Promise<void> {
   try {
     const db = await getDatabase();
     await db.execAsync(SCHEMA_SQL);
+    await addColumnIfMissing(db, 'diagnoses', 'severity', 'TEXT');
   } catch (err) {
     if (Platform.OS === 'web') {
       // Support web alpha : on n'empêche pas l'app de démarrer dans le
@@ -101,5 +103,25 @@ export async function initDatabase(): Promise<void> {
       return;
     }
     throw err;
+  }
+}
+
+/**
+ * Migration douce pour les installations déjà existantes : CREATE TABLE
+ * IF NOT EXISTS n'ajoute pas de colonne à une table déjà créée par une
+ * version antérieure du schéma. On tente l'ALTER, et on ignore
+ * silencieusement l'erreur si la colonne existe déjà (SQLite ne supporte
+ * pas "ADD COLUMN IF NOT EXISTS" nativement).
+ */
+async function addColumnIfMissing(
+  db: SQLite.SQLiteDatabase,
+  table: string,
+  column: string,
+  type: string
+): Promise<void> {
+  try {
+    await db.execAsync(`ALTER TABLE ${table} ADD COLUMN ${column} ${type};`);
+  } catch {
+    // Colonne déjà présente — rien à faire.
   }
 }

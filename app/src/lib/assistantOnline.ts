@@ -1,28 +1,7 @@
 import NetInfo from '@react-native-community/netinfo';
 import { isSupabaseConfigured, supabase } from './supabase';
+import { ensureSession } from './session';
 import type { Lang } from './assistant/types';
-
-/**
- * Assure une session Supabase, même anonyme, uniquement pour obtenir un
- * JWT valide côté client — nécessaire pour appeler l'Edge Function
- * assistant-fallback (protégée par défaut par la vérification JWT de
- * Supabase). Tant que la tâche n°6 n'existe pas, tous les utilisateurs
- * passent par ici. Une fois l'auth réelle en place, une session déjà
- * connectée est utilisée directement (rien à changer dans ce fichier).
- */
-async function ensureSession(): Promise<boolean> {
-  if (!supabase) return false;
-
-  const { data } = await supabase.auth.getSession();
-  if (data.session) return true;
-
-  const { error } = await supabase.auth.signInAnonymously();
-  if (error) {
-    console.warn('[assistantOnline] échec de la session anonyme :', error.message);
-    return false;
-  }
-  return true;
-}
 
 async function isNetworkAvailable(): Promise<boolean> {
   const state = await NetInfo.fetch();

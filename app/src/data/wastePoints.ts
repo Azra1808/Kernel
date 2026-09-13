@@ -1,5 +1,6 @@
 import { getDatabase } from '../db/database';
 import { supabase } from '../lib/supabase';
+import { ensureUserId } from '../lib/session';
 import { generateId } from '../lib/uuid';
 import { runSync } from '../sync/syncEngine';
 
@@ -161,13 +162,16 @@ export async function submitWasteReport(
   const id = generateId();
   const createdAt = new Date().toISOString();
 
-  // user_id à NULL en attendant que le module d'authentification soit en
-  // place (pas encore développé à cette étape du hackathon) — à relier
-  // à l'utilisateur connecté (auth.users / profiles) une fois dispo.
+  // Session anonyme en attendant la tâche n°6 (vraie authentification) —
+  // sans un user_id réel, la RLS "waste_reports_insert_own" (auth.uid() =
+  // user_id) rejette l'insertion côté Supabase et le signalement reste
+  // "en_attente" pour toujours, même avec du réseau.
+  const userId = await ensureUserId();
+
   await db.runAsync(
     `INSERT INTO waste_reports (id, waste_point_id, user_id, status, note, sync_status, created_at)
-     VALUES (?, ?, NULL, ?, ?, 'en_attente', ?);`,
-    [id, wastePointId, status, note, createdAt]
+     VALUES (?, ?, ?, ?, ?, 'en_attente', ?);`,
+    [id, wastePointId, userId, status, note, createdAt]
   );
 
   // Tentative optimiste : si ça échoue (offline), pas grave, useAutoSync

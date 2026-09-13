@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AnimatedPressable } from '../components/AnimatedPressable';
 import { ACCENT_THEMES, ColorThemeId, Mode, radius, type Palette } from '../theme/palettes';
 import { TextSize, usePreferences } from '../theme/PreferencesContext';
 import { fonts, fontSize } from '../theme/typography';
@@ -10,6 +11,7 @@ import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
 import type { Lang } from '../lib/assistant/types';
 import type { RootStackParamList } from '../navigation/RootNavigator';
+import { signOut, useAuthState } from '../lib/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Parametres'>;
 
@@ -42,14 +44,15 @@ export default function ParametresScreen({ navigation }: Props) {
   const prefs = usePreferences();
   const { colors, fontScale, mode, colorTheme, language, textSize } = prefs;
   const styles = useMemo(() => createStyles(colors, fontScale), [colors, fontScale]);
-  const t = (fr: string, en: string) => (language === 'fr' ? fr : en);
+  const t = useCallback((fr: string, en: string) => (language === 'fr' ? fr : en), [language]);
+  const auth = useAuthState();
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Pressable accessibilityLabel={t('Fermer', 'Close')} hitSlop={8} onPress={() => navigation.goBack()}>
+        <AnimatedPressable accessibilityLabel={t('Fermer', 'Close')} hitSlop={8} onPress={() => navigation.goBack()}>
           <Icon name="chevron" color={colors.ink} size={22} />
-        </Pressable>
+        </AnimatedPressable>
         <Text style={styles.headerTitle}>{t('Paramètres', 'Settings')}</Text>
         <View style={{ width: 22 }} />
       </View>
@@ -61,7 +64,7 @@ export default function ParametresScreen({ navigation }: Props) {
             {MODE_OPTIONS.map((option) => {
               const selected = option.value === mode;
               return (
-                <Pressable
+                <AnimatedPressable
                   key={option.value}
                   onPress={() => prefs.setMode(option.value)}
                   style={[styles.segment, selected && styles.segmentSelected]}
@@ -70,7 +73,7 @@ export default function ParametresScreen({ navigation }: Props) {
                   <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
                     {t(option.label.fr, option.label.en)}
                   </Text>
-                </Pressable>
+                </AnimatedPressable>
               );
             })}
           </View>
@@ -83,7 +86,7 @@ export default function ParametresScreen({ navigation }: Props) {
               const def = ACCENT_THEMES[id];
               const selected = id === colorTheme;
               return (
-                <Pressable
+                <AnimatedPressable
                   key={id}
                   onPress={() => prefs.setColorTheme(id)}
                   style={styles.swatchColumn}
@@ -99,7 +102,7 @@ export default function ParametresScreen({ navigation }: Props) {
                   <Text style={[styles.swatchLabel, selected && styles.swatchLabelSelected]}>
                     {t(def.label.fr, def.label.en)}
                   </Text>
-                </Pressable>
+                </AnimatedPressable>
               );
             })}
           </View>
@@ -116,13 +119,49 @@ export default function ParametresScreen({ navigation }: Props) {
           </Card>
         </Section>
 
+        {/* --- Compte --- */}
+        <Section title={t('Compte', 'Account')} styles={styles}>
+          <Card tone="paper" style={styles.accountCard}>
+            {auth.loading ? (
+              <Text style={styles.accountText}>{t('Chargement...', 'Loading...')}</Text>
+            ) : auth.isAnonymous ? (
+              <>
+                <View style={styles.accountRow}>
+                  <Icon name="bell" size={18} color={colors.muted} />
+                  <Text style={styles.accountText}>
+                    {t(
+                      'Session locale — non connecté. Tes données restent sur ce téléphone.',
+                      'Local session — not signed in. Your data stays on this phone.'
+                    )}
+                  </Text>
+                </View>
+                <Button
+                  label={t('Créer un compte / Se connecter', 'Create account / Sign in')}
+                  onPress={() => navigation.navigate('Auth')}
+                  variant="secondary"
+                />
+              </>
+            ) : (
+              <>
+                <View style={styles.accountRow}>
+                  <Icon name="bell" size={18} color={colors.moss} />
+                  <Text style={styles.accountText}>
+                    {t('Connecté en tant que', 'Signed in as')} {auth.email}
+                  </Text>
+                </View>
+                <Button label={t('Se déconnecter', 'Sign out')} onPress={() => signOut()} variant="ghost" />
+              </>
+            )}
+          </Card>
+        </Section>
+
         {/* --- Langue --- */}
         <Section title={t('Langue', 'Language')} styles={styles}>
           <View style={styles.segmentRow}>
             {LANGUAGE_OPTIONS.map((option) => {
               const selected = option.value === language;
               return (
-                <Pressable
+                <AnimatedPressable
                   key={option.value}
                   onPress={() => prefs.setLanguage(option.value)}
                   style={[styles.segment, selected && styles.segmentSelected]}
@@ -130,7 +169,7 @@ export default function ParametresScreen({ navigation }: Props) {
                   <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
                     {option.label}
                   </Text>
-                </Pressable>
+                </AnimatedPressable>
               );
             })}
           </View>
@@ -148,7 +187,7 @@ export default function ParametresScreen({ navigation }: Props) {
             {TEXT_SIZE_OPTIONS.map((option) => {
               const selected = option.value === textSize;
               return (
-                <Pressable
+                <AnimatedPressable
                   key={option.value}
                   onPress={() => prefs.setTextSize(option.value)}
                   style={[styles.segment, selected && styles.segmentSelected]}
@@ -156,7 +195,7 @@ export default function ParametresScreen({ navigation }: Props) {
                   <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
                     {t(option.label.fr, option.label.en)}
                   </Text>
-                </Pressable>
+                </AnimatedPressable>
               );
             })}
           </View>
@@ -273,6 +312,21 @@ function createStyles(colors: Palette, fontScale: number) {
     },
     previewCard: {
       gap: 12,
+    },
+    accountCard: {
+      gap: 12,
+    },
+    accountRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    accountText: {
+      fontFamily: fonts.body,
+      fontSize: fontSize.sm * fontScale,
+      color: colors.ink,
+      flex: 1,
+      flexWrap: 'wrap',
     },
     previewRow: {
       flexDirection: 'row',
