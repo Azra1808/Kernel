@@ -22,6 +22,7 @@ import { PreferencesProvider, usePreferences } from './src/theme/PreferencesCont
 import { initDatabase } from './src/db/database';
 import { registerAllSyncableTables } from './src/sync/registerTables';
 import { useAutoSync } from './src/sync/useAutoSync';
+import { hasSeenOnboarding } from './src/lib/onboarding';
 
 // Garde le splash screen natif affiché tant que les polices ne sont pas
 // chargées, pour éviter un flash de texte avec la police système.
@@ -42,6 +43,9 @@ export default function App() {
   const fontsLoaded = frauncesLoaded && spaceGroteskLoaded;
 
   const [dbReady, setDbReady] = useState(false);
+  // null = pas encore déterminé. Vérification 100% locale (AsyncStorage),
+  // donc rapide et sans dépendance réseau — cohérent avec l'offline-first.
+  const [initialRoute, setInitialRoute] = useState<'Tabs' | 'Auth' | null>(null);
 
   useEffect(() => {
     registerAllSyncableTables();
@@ -50,11 +54,13 @@ export default function App() {
       .catch((err) => {
         console.error("[db] échec d'initialisation SQLite:", err);
       });
+
+    hasSeenOnboarding().then((seen) => setInitialRoute(seen ? 'Tabs' : 'Auth'));
   }, []);
 
   useAutoSync();
 
-  const appReady = fontsLoaded && dbReady;
+  const appReady = fontsLoaded && dbReady && initialRoute !== null;
 
   if (!appReady) {
     return null;
@@ -65,12 +71,12 @@ export default function App() {
   // qui peut alors appeler usePreferences().
   return (
     <PreferencesProvider>
-      <AppShell />
+      <AppShell initialRoute={initialRoute} />
     </PreferencesProvider>
   );
 }
 
-function AppShell() {
+function AppShell({ initialRoute }: { initialRoute: 'Tabs' | 'Auth' }) {
   const { colors, ready } = usePreferences();
 
   const onLayoutRootView = useCallback(async () => {
@@ -82,7 +88,7 @@ function AppShell() {
   return (
     <SafeAreaProvider>
       <View style={{ flex: 1, backgroundColor: colors.paper }} onLayout={onLayoutRootView}>
-        <RootNavigator />
+        <RootNavigator initialRouteName={initialRoute} />
         <StatusBar style="light" />
       </View>
     </SafeAreaProvider>

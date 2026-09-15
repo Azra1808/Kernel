@@ -110,10 +110,15 @@ function Tabs() {
   );
 }
 
-export default function RootNavigator() {
+type RootNavigatorProps = {
+  /** Détermine si l'écran Auth s'affiche au tout premier lancement (voir App.tsx + lib/onboarding.ts) */
+  initialRouteName?: keyof RootStackParamList;
+};
+
+export default function RootNavigator({ initialRouteName = 'Tabs' }: RootNavigatorProps) {
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRouteName}>
         <Stack.Screen name="Tabs" component={Tabs} />
         <Stack.Screen
           name="Parametres"

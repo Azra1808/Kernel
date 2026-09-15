@@ -32,6 +32,16 @@ export interface WastePointWithStatus {
  */
 export async function fetchAndCacheWastePoints(): Promise<void> {
   if (!supabase) return;
+
+  // Sans session (même anonyme), la RLS "waste_points_select_authenticated"
+  // (auth.role() = 'authenticated') filtre TOUT sans erreur — la requête
+  // "réussit" avec une liste vide. C'était le bug : si Ressources est le
+  // premier onglet ouvert (avant d'avoir jamais utilisé le chat ou un
+  // diagnostic), aucune session n'existait encore, donc rien ne se
+  // chargeait jamais, silencieusement.
+  const userId = await ensureUserId();
+  if (!userId) return;
+
   const { data, error } = await supabase.from('waste_points').select('*');
   if (error || !data) {
     return;
