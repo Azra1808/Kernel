@@ -285,16 +285,22 @@ jobs:
         if: steps.apk.outputs.ready == 'true'
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Build installable debug APK
+      - name: Build installable APK
         if: steps.apk.outputs.ready == 'true'
         working-directory: app/android
         shell: bash
         run: |
           set -euo pipefail
           chmod +x gradlew
-          ./gradlew --no-daemon :app:assembleDebug
+          # Un APK "debug" classique (assembleDebug) n'embarque pas le bundle JS :
+          # il attend un serveur Metro accessible, donc il ne fonctionne pas une
+          # fois installé depuis un artefact GitHub Actions sur un téléphone.
+          # Le variant "release" embarque le JS et reste installable sans clé
+          # réelle puisque le buildType release utilise signingConfigs.debug
+          # par défaut dans un projet généré par expo prebuild.
+          ./gradlew --no-daemon :app:assembleRelease
           mkdir -p ../artifacts
-          cp app/build/outputs/apk/debug/app-debug.apk "../artifacts/kernel-${GITHUB_SHA}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "../artifacts/kernel-${GITHUB_SHA}.apk"
 
       - name: Upload APK
         if: steps.apk.outputs.ready == 'true'
