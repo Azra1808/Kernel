@@ -1,0 +1,132 @@
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { useEffect } from 'react';
+import { usePreferences } from '../theme/PreferencesContext';
+import { fonts, fontSize } from '../theme/typography';
+import { Icon, IconName } from '../theme/Icon';
+
+import AccueilScreen from '../screens/AccueilScreen';
+import AgricultureScreen from '../screens/AgricultureScreen';
+import RessourcesScreen from '../screens/RessourcesScreen';
+import EcosystemeScreen from '../screens/EcosystemeScreen';
+import AssistantScreen from '../screens/AssistantScreen';
+import ParametresScreen from '../screens/ParametresScreen';
+import AuthScreen from '../screens/AuthScreen';
+
+export type RootTabParamList = {
+  Accueil: undefined;
+  Agriculture: undefined;
+  Ressources: undefined;
+  Ecosysteme: undefined;
+  Assistant: undefined;
+};
+
+// Paramètres n'est PAS un onglet (fidèle à la maquette : accessible depuis
+// l'icône profil/cloche de l'écran Accueil) — d'où le Stack au-dessus des
+// Tabs plutôt qu'un 6e onglet.
+export type RootStackParamList = {
+  Tabs: undefined;
+  Parametres: undefined;
+  Auth: undefined;
+};
+
+const Tab = createBottomTabNavigator<RootTabParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+// NOTE — icônes : branchées via le composant Icon (tâche n°5), qui
+// réplique en React Native le sprite SVG unique de la maquette.
+const TAB_ICONS: Record<keyof RootTabParamList, IconName> = {
+  Accueil: 'home',
+  Agriculture: 'leaf',
+  Ressources: 'crate',
+  Ecosysteme: 'globe',
+  Assistant: 'chat',
+};
+
+// Équivalent "hover" pour la tabbar : l'icône rebondit légèrement quand
+// son onglet devient actif — seul repère visuel qui bougeait pas du tout
+// avant (tâche n°19 suite / anticipe la tâche n°23).
+function AnimatedTabIcon({ name, color, size, focused }: { name: IconName; color: string; size: number; focused: boolean }) {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (focused) {
+      scale.value = withSpring(1.18, { damping: 8, stiffness: 260 }, () => {
+        scale.value = withSpring(1, { damping: 10, stiffness: 220 });
+      });
+    }
+  }, [focused, scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Icon name={name} color={color} size={size} />
+    </Animated.View>
+  );
+}
+
+function Tabs() {
+  const { colors } = usePreferences();
+
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: '#8B9187',
+        tabBarHideOnKeyboard: true,
+        tabBarStyle: {
+          backgroundColor: colors.shell,
+          borderTopWidth: 0,
+          height: 70,
+          paddingTop: 8,
+          paddingBottom: 10,
+        },
+        tabBarLabelStyle: {
+          fontFamily: fonts.bodySemiBold,
+          fontSize: fontSize.xs,
+        },
+        tabBarIcon: ({ color, size, focused }) => (
+          <AnimatedTabIcon
+            name={TAB_ICONS[route.name as keyof RootTabParamList]}
+            color={color}
+            size={size - 2}
+            focused={focused}
+          />
+        ),
+      })}
+    >
+      <Tab.Screen name="Accueil" component={AccueilScreen} options={{ tabBarLabel: 'Accueil' }} />
+      <Tab.Screen name="Agriculture" component={AgricultureScreen} options={{ tabBarLabel: 'Agri' }} />
+      <Tab.Screen name="Ressources" component={RessourcesScreen} options={{ tabBarLabel: 'Ressources' }} />
+      <Tab.Screen name="Ecosysteme" component={EcosystemeScreen} options={{ tabBarLabel: 'Kernel' }} />
+      <Tab.Screen name="Assistant" component={AssistantScreen} options={{ tabBarLabel: 'Chat' }} />
+    </Tab.Navigator>
+  );
+}
+
+type RootNavigatorProps = {
+  /** Détermine si l'écran Auth s'affiche au tout premier lancement (voir App.tsx + lib/onboarding.ts) */
+  initialRouteName?: keyof RootStackParamList;
+};
+
+export default function RootNavigator({ initialRouteName = 'Tabs' }: RootNavigatorProps) {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRouteName}>
+        <Stack.Screen name="Tabs" component={Tabs} />
+        <Stack.Screen
+          name="Parametres"
+          component={ParametresScreen}
+          options={{ presentation: 'modal' }}
+        />
+        <Stack.Screen name="Auth" component={AuthScreen} options={{ presentation: 'modal' }} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}

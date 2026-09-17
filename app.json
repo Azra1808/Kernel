@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Kernel",
+    "slug": "kernel",
+    "scheme": "kernel",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.nextstephacks.kernel",
+      "adaptiveIcon": {
+        "backgroundColor": "#19232C",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#19232C"
+        }
+      ],
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Kernel a besoin d'accéder à tes photos pour choisir une image de plante depuis ta galerie.",
+          "cameraPermission": "Kernel a besoin de l'appareil photo pour photographier une plante et diagnostiquer une maladie."
+        }
+      ]
+    ]
+  }
+}
