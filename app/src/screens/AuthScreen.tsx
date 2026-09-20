@@ -8,6 +8,7 @@ import { Icon } from '../theme/Icon';
 import { Button } from '../components/Button';
 import { AnimatedPressable } from '../components/AnimatedPressable';
 import { signIn, signUp } from '../lib/auth';
+import { markOnboardingSeen } from '../lib/onboarding';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Auth'>;
@@ -22,6 +23,14 @@ type Mode = 'signin' | 'signup';
 // session.ts), l'inscription CONVERTIT cette session en vrai compte au
 // lieu d'en créer une nouvelle, pour garder tout ce qu'il avait déjà
 // fait (diagnostics, signalements) — voir lib/auth.ts::signUp().
+//
+// Cet écran peut être atteint de deux façons différentes :
+//  1. Poussé depuis Paramètres → Compte (il y a un écran en-dessous,
+//     goBack() fonctionne normalement)
+//  2. Utilisé comme ÉCRAN DE DÉPART au tout premier lancement de l'app
+//     (voir App.tsx + lib/onboarding.ts) — dans ce cas il n'y a RIEN
+//     en-dessous, goBack() échouerait silencieusement. D'où le helper
+//     leaveScreen() ci-dessous, qui gère les deux cas.
 export default function AuthScreen({ navigation }: Props) {
   const { colors, fontScale, language } = usePreferences();
   const styles = useMemo(() => createStyles(colors, fontScale), [colors, fontScale]);
@@ -33,6 +42,19 @@ export default function AuthScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const leaveScreen = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.replace('Tabs');
+    }
+  }, [navigation]);
+
+  const handleSkip = useCallback(() => {
+    markOnboardingSeen();
+    leaveScreen();
+  }, [leaveScreen]);
 
   const handleSubmit = useCallback(async () => {
     setError(null);
@@ -52,8 +74,9 @@ export default function AuthScreen({ navigation }: Props) {
       return;
     }
 
-    navigation.goBack();
-  }, [email, password, fullName, mode, t, navigation]);
+    markOnboardingSeen();
+    leaveScreen();
+  }, [email, password, fullName, mode, t, leaveScreen]);
 
   return (
     <KeyboardAvoidingView
@@ -64,7 +87,7 @@ export default function AuthScreen({ navigation }: Props) {
         <AnimatedPressable
           accessibilityLabel={t('Fermer', 'Close')}
           hitSlop={8}
-          onPress={() => navigation.goBack()}
+          onPress={handleSkip}
           pressScale={0.85}
         >
           <Icon name="chevron" color={colors.ink} size={22} />
@@ -155,6 +178,10 @@ export default function AuthScreen({ navigation }: Props) {
               : t('Pas de compte ? Créer un compte', "Don't have an account? Sign up")}
           </Text>
         </AnimatedPressable>
+
+        <AnimatedPressable onPress={handleSkip} style={styles.skipButton} haptics={false}>
+          <Text style={styles.skipText}>{t('Continuer sans compte', 'Continue without an account')}</Text>
+        </AnimatedPressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -226,6 +253,17 @@ function createStyles(colors: Palette, fontScale: number) {
       fontFamily: fonts.bodyMedium,
       fontSize: fontSize.sm * fontScale,
       color: colors.accent,
+    },
+    skipButton: {
+      alignItems: 'center',
+      paddingVertical: 14,
+      marginTop: 4,
+    },
+    skipText: {
+      fontFamily: fonts.bodySemiBold,
+      fontSize: fontSize.sm * fontScale,
+      color: colors.muted,
+      textDecorationLine: 'underline',
     },
   });
 }
