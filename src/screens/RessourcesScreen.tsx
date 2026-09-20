@@ -18,10 +18,16 @@ import {
   WasteStatus,
 } from '../data/wastePoints';
 
-const STATUS_LABEL: Record<WasteStatus, string> = {
+const STATUS_LABEL_FR: Record<WasteStatus, string> = {
   plein: 'Plein',
   partiel: 'Partiel',
   vide: 'Vide',
+};
+
+const STATUS_LABEL_EN: Record<WasteStatus, string> = {
+  plein: 'Full',
+  partiel: 'Partial',
+  vide: 'Empty',
 };
 
 // Couleurs de STATUT — fixes, ne suivent pas le thème d'accent choisi
@@ -37,8 +43,10 @@ const STATUS_TONE: Record<WasteStatus, ChipTone> = {
 // computePriorityScore dans data/wastePoints.ts). Habillage aligné sur
 // le système de thème de la tâche n°19 (usePreferences).
 export default function RessourcesScreen() {
-  const { colors, fontScale } = usePreferences();
+  const { colors, fontScale, language } = usePreferences();
   const styles = useMemo(() => createStyles(colors, fontScale), [colors, fontScale]);
+  const t = useCallback((fr: string, en: string) => (language === 'fr' ? fr : en), [language]);
+  const STATUS_LABEL = language === 'fr' ? STATUS_LABEL_FR : STATUS_LABEL_EN;
 
   const [points, setPoints] = useState<WastePointWithStatus[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -104,6 +112,149 @@ export default function RessourcesScreen() {
         data={points}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
+        ListHeaderComponent={
+          <View style={styles.headerBlock}>
+            <StatusBadge state={syncState} />
+            <View style={styles.brandRow}>
+              <Icon name="crate" color={colors.clay} size={22} />
+              <Text style={styles.title}>{t('Ressources', 'Resources')}</Text>
+            </View>
+            <Text style={styles.subtitle}>
+              {t('Points de collecte du quartier, triés par urgence.', 'Neighborhood collection points, sorted by urgency.')}
+            </Text>
+          </View>
+        }
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>
+            {t(
+              'Aucun point de collecte en cache pour l’instant. Tire vers le bas pour réessayer.',
+              'No collection points cached yet. Pull down to try again.',
+            )}
+          </Text>
+        }
+        renderItem={({ item }) => (
+          <Card style={styles.pointCard}>
+            <View style={styles.pointHeader}>
+              <Text style={styles.pointName}>{item.name}</Text>
+              {item.latestStatus ? (
+                <Chip label={STATUS_LABEL[item.latestStatus]} tone={STATUS_TONE[item.latestStatus]} />
+              ) : (
+                <Chip label={t('Pas encore signalé', 'Not reported yet')} tone="neutral" />
+              )}
+            </View>
+            {item.neighborhood ? <Text style={styles.pointMeta}>{item.neighborhood}</Text> : null}
+            {item.recentReportCount > 1 ? (
+              <Text style={styles.pointMeta}>
+                {t(
+                  `${item.recentReportCount} signalements cette semaine`,
+                  `${item.recentReportCount} reports this week`,
+                )}
+              </Text>
+            ) : null}
+            {item.latestNote ? <Text style={styles.pointNote}>« {item.latestNote} »</Text> : null}
+            {item.pendingCount > 0 ? (
+              <View style={styles.pendingRow}>
+                <Icon name="wifioff" size={12} color={colors.muted} />
+                <Text style={styles.pendingText}>
+                  {t(
+                    `${item.pendingCount} signalement${item.pendingCount > 1 ? 's' : ''} en attente de synchro`,
+                    `${item.pendingCount} report${item.pendingCount > 1 ? 's' : ''} pending sync`,
+                  )}
+                </Text>
+              </View>
+            ) : null}
+            <Button label={t('Signaler', 'Report')} variant="secondary" onPress={() => setSelectedPoint(item)} />
+          </Card>
+        )}
+      />
+
+      <WasteReportForm
+        visible={selectedPoint !== null}
+        pointName={selectedPoint?.name ?? ''}
+        submitting={submitting}
+        onCancel={() => setSelectedPoint(null)}
+        onSubmit={handleSubmitReport}
+      />
+    </View>
+  );
+}
+
+function createStyles(colors: Palette, fontScale: number) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.paper,
+    },
+    content: {
+      padding: 20,
+      gap: 12,
+    },
+    headerBlock: {
+      gap: 8,
+      marginBottom: 4,
+    },
+    brandRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 6,
+    },
+    title: {
+      fontFamily: fonts.titleBold,
+      fontSize: fontSize.xxl * fontScale,
+      color: colors.ink,
+    },
+    subtitle: {
+      fontFamily: fonts.body,
+      fontSize: fontSize.sm * fontScale,
+      color: colors.muted,
+    },
+    emptyText: {
+      fontFamily: fonts.body,
+      fontSize: fontSize.sm * fontScale,
+      color: colors.muted,
+      textAlign: 'center',
+      marginTop: 24,
+    },
+    pointCard: {
+      gap: 8,
+    },
+    pointHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    pointName: {
+      fontFamily: fonts.bodySemiBold,
+      fontSize: fontSize.md * fontScale,
+      color: colors.ink,
+      flex: 1,
+    },
+    pointMeta: {
+      fontFamily: fonts.body,
+      fontSize: fontSize.xs * fontScale,
+      color: colors.muted,
+    },
+    pointNote: {
+      fontFamily: fonts.body,
+      fontSize: fontSize.sm * fontScale,
+      color: colors.ink,
+      opacity: 0.8,
+      fontStyle: 'italic',
+    },
+    pendingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    pendingText: {
+      fontFamily: fonts.body,
+      fontSize: fontSize.xs * fontScale,
+      color: colors.muted,
+    },
+  });
+}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
         ListHeaderComponent={
           <View style={styles.headerBlock}>
