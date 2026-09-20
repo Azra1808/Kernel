@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
 import { Icon } from '../theme/Icon';
 import { fonts, fontSize } from '../theme/typography';
+import { usePreferences } from '../theme/PreferencesContext';
 
 export type SyncState = 'online' | 'offline' | 'syncing';
 
@@ -9,10 +10,16 @@ type StatusBadgeProps = {
   state: SyncState;
 };
 
-const LABELS: Record<SyncState, string> = {
+const LABELS_FR: Record<SyncState, string> = {
   online: 'En ligne',
   offline: 'Hors ligne — données en attente',
   syncing: 'Synchronisation...',
+};
+
+const LABELS_EN: Record<SyncState, string> = {
+  online: 'Online',
+  offline: 'Offline — data pending',
+  syncing: 'Syncing...',
 };
 
 /**
@@ -22,6 +29,8 @@ const LABELS: Record<SyncState, string> = {
  * visible sans interrompre l'utilisateur (principe offline-first).
  */
 export function StatusBadge({ state }: StatusBadgeProps) {
+  const { language } = usePreferences();
+  const labels = language === 'fr' ? LABELS_FR : LABELS_EN;
   return (
     <View style={styles.strip}>
       {state === 'offline' ? (
@@ -29,7 +38,7 @@ export function StatusBadge({ state }: StatusBadgeProps) {
       ) : (
         <View style={[styles.dot, state === 'syncing' && styles.dotSyncing]} />
       )}
-      <Text style={styles.label}>{LABELS[state]}</Text>
+      <Text style={styles.label}>{labels[state]}</Text>
     </View>
   );
 }
