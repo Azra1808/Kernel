@@ -18,8 +18,8 @@ describe('<AccueilScreen />', () => {
       );
 
       screen.getByText('Agriculture');
-      screen.getByText('Ressources');
-      fireEvent.press(screen.getByText('Écosystème'));
+      screen.getByText('Resources');
+      fireEvent.press(screen.getByText('Ecosystem'));
 
       expect(navigate).toHaveBeenCalledWith('Tabs', { screen: 'Ecosysteme' });
     },
@@ -31,8 +31,8 @@ describe('<AccueilScreen />', () => {
       <AccueilScreen navigation={{ navigate: jest.fn() } as never} route={{ key: 'Accueil', name: 'Accueil' }} />
     );
 
-    screen.getByText(/Hors ligne/);
-    screen.getByText('Fatou a signalé un point plein');
-    screen.getByText('Diagnostic manioc enregistré');
+    screen.getByText(/Offline/);
+    screen.getByText('Fatou reported a full point');
+    screen.getByText('Cassava diagnosis logged');
   });
 });
