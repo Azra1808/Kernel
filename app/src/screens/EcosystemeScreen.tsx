@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+    import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Icon } from '../theme/Icon';
 import { demoDashboard, type EcosystemDashboard, type HealthLabel } from '../features/ecosystem/domain';
@@ -119,77 +119,6 @@ function createStyles(colors: Palette) {
     },
     headerBlock: {
       gap: 4,
-    },
-    title: {
-      fontFamily: fontFamily.displayBold,
-      fontSize: 24,
-      color: colors.ink,
-    },
-    subtitle: {
-      fontFamily: fontFamily.body,
-      fontSize: 13,
-      color: colors.muted,
-    },
-    notice: {
-      alignItems: 'center',
-      backgroundColor: colors.goldPale,
-      borderRadius: radius.sm,
-      flexDirection: 'row',
-      gap: spacing.sm,
-      padding: spacing.md,
-    },
-    noticeDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: colors.warning,
-    },
-    noticeText: {
-      color: colors.warning,
-      flex: 1,
-      fontFamily: fontFamily.bodyMedium,
-      fontSize: 11,
-      lineHeight: 16,
-    },
-    healthCard: {
-      alignItems: 'center',
-      // Vert fixe (santé environnementale) — ne suit pas le thème d'accent.
-      backgroundColor: colors.moss,
-      borderRadius: radius.md,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      minHeight: 98,
-      padding: spacing.lg,
-    },
-    healthLabel: {
-      color: colors.white,
-      fontFamily: fontFamily.displayBold,
-      fontSize: 29,
-    },
-    healthCaption: {
-      color: colors.mossPale,
-      fontFamily: fontFamily.body,
-      fontSize: 11,
-      marginTop: spacing.xs,
-    },
-    globe: {
-      alignItems: 'center',
-      borderColor: 'rgba(255,255,255,0.28)',
-      borderRadius: 25,
-      borderWidth: 1,
-      height: 50,
-      justifyContent: 'center',
-      width: 50,
-    },
-    privacy: {
-      color: colors.muted,
-      fontFamily: fontFamily.body,
-      fontSize: 10,
-      lineHeight: 15,
-      textAlign: 'center',
-    },
-  });
-}
     },
     title: {
       fontFamily: fontFamily.displayBold,
