@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, radius } from '../theme/colors';
 import { fonts, fontSize } from '../theme/typography';
+import { usePreferences } from '../theme/PreferencesContext';
 import { Button } from './Button';
 import type { WasteStatus } from '../data/wastePoints';
 
-type StatusOption = { value: WasteStatus; label: string };
+type StatusOption = { value: WasteStatus; labelFr: string; labelEn: string };
 
 const STATUS_OPTIONS: StatusOption[] = [
-  { value: 'plein', label: 'Plein' },
-  { value: 'partiel', label: 'Partiel' },
-  { value: 'vide', label: 'Vide' },
+  { value: 'plein', labelFr: 'Plein', labelEn: 'Full' },
+  { value: 'partiel', labelFr: 'Partiel', labelEn: 'Partial' },
+  { value: 'vide', labelFr: 'Vide', labelEn: 'Empty' },
 ];
 
 type WasteReportFormProps = {
@@ -33,6 +34,8 @@ export function WasteReportForm({
   onCancel,
   onSubmit,
 }: WasteReportFormProps) {
+  const { language } = usePreferences();
+  const t = (fr: string, en: string) => (language === 'fr' ? fr : en);
   const [status, setStatus] = useState<WasteStatus>('plein');
   const [note, setNote] = useState('');
 
@@ -46,7 +49,7 @@ export function WasteReportForm({
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onCancel}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
-          <Text style={styles.title}>Signaler ce point</Text>
+          <Text style={styles.title}>{t('Signaler ce point', 'Report this point')}</Text>
           <Text style={styles.subtitle}>{pointName}</Text>
 
           <View style={styles.optionsRow}>
@@ -59,7 +62,7 @@ export function WasteReportForm({
                   style={[styles.option, selected && styles.optionSelected]}
                 >
                   <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
-                    {option.label}
+                    {t(option.labelFr, option.labelEn)}
                   </Text>
                 </Pressable>
               );
@@ -68,7 +71,7 @@ export function WasteReportForm({
 
           <TextInput
             style={styles.input}
-            placeholder="Commentaire (optionnel)"
+            placeholder={t('Commentaire (optionnel)', 'Comment (optional)')}
             placeholderTextColor={colors.muted}
             value={note}
             onChangeText={setNote}
@@ -76,9 +79,9 @@ export function WasteReportForm({
           />
 
           <View style={styles.actions}>
-            <Button label="Annuler" variant="ghost" onPress={onCancel} disabled={submitting} />
+            <Button label={t('Annuler', 'Cancel')} variant="ghost" onPress={onCancel} disabled={submitting} />
             <Button
-              label="Envoyer"
+              label={t('Envoyer', 'Send')}
               variant="primary"
               onPress={handleSubmit}
               loading={submitting}
@@ -86,8 +89,10 @@ export function WasteReportForm({
           </View>
 
           <Text style={styles.offlineHint}>
-            Le signalement est enregistré tout de suite, même sans réseau — il sera envoyé
-            automatiquement dès que la connexion revient.
+            {t(
+              'Le signalement est enregistré tout de suite, même sans réseau — il sera envoyé automatiquement dès que la connexion revient.',
+              'The report is saved right away, even offline — it will be sent automatically once the connection is back.',
+            )}
           </Text>
         </View>
       </View>
@@ -104,6 +109,67 @@ const styles = StyleSheet.create({
   sheet: {
     backgroundColor: colors.paper,
     borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    padding: 20,
+    gap: 14,
+  },
+  title: {
+    fontFamily: fonts.titleBold,
+    fontSize: fontSize.lg,
+    color: colors.ink,
+  },
+  subtitle: {
+    fontFamily: fonts.body,
+    fontSize: fontSize.sm,
+    color: colors.muted,
+    marginTop: -10,
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  option: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    alignItems: 'center',
+  },
+  optionSelected: {
+    borderColor: colors.clay,
+    backgroundColor: colors.clayPale,
+  },
+  optionLabel: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: fontSize.sm,
+    color: colors.ink,
+  },
+  optionLabelSelected: {
+    color: colors.clay,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.md,
+    padding: 12,
+    minHeight: 60,
+    fontFamily: fonts.body,
+    fontSize: fontSize.base,
+    color: colors.ink,
+    textAlignVertical: 'top',
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'flex-end',
+  },
+  offlineHint: {
+    fontFamily: fonts.body,
+    fontSize: fontSize.xs,
+    color: colors.muted,
+  },
+});
     borderTopRightRadius: radius.lg,
     padding: 20,
     gap: 14,
