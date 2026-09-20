@@ -18,10 +18,16 @@ import {
   WasteStatus,
 } from '../data/wastePoints';
 
-const STATUS_LABEL: Record<WasteStatus, string> = {
+const STATUS_LABEL_FR: Record<WasteStatus, string> = {
   plein: 'Plein',
   partiel: 'Partiel',
   vide: 'Vide',
+};
+
+const STATUS_LABEL_EN: Record<WasteStatus, string> = {
+  plein: 'Full',
+  partiel: 'Partial',
+  vide: 'Empty',
 };
 
 // Couleurs de STATUT — fixes, ne suivent pas le thème d'accent choisi
@@ -37,8 +43,10 @@ const STATUS_TONE: Record<WasteStatus, ChipTone> = {
 // computePriorityScore dans data/wastePoints.ts). Habillage aligné sur
 // le système de thème de la tâche n°19 (usePreferences).
 export default function RessourcesScreen() {
-  const { colors, fontScale } = usePreferences();
+  const { colors, fontScale, language } = usePreferences();
   const styles = useMemo(() => createStyles(colors, fontScale), [colors, fontScale]);
+  const t = useCallback((fr: string, en: string) => (language === 'fr' ? fr : en), [language]);
+  const STATUS_LABEL = language === 'fr' ? STATUS_LABEL_FR : STATUS_LABEL_EN;
 
   const [points, setPoints] = useState<WastePointWithStatus[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -110,16 +118,19 @@ export default function RessourcesScreen() {
             <StatusBadge state={syncState} />
             <View style={styles.brandRow}>
               <Icon name="crate" color={colors.clay} size={22} />
-              <Text style={styles.title}>Ressources</Text>
+              <Text style={styles.title}>{t('Ressources', 'Resources')}</Text>
             </View>
             <Text style={styles.subtitle}>
-              Points de collecte du quartier, triés par urgence.
+              {t('Points de collecte du quartier, triés par urgence.', 'Neighborhood collection points, sorted by urgency.')}
             </Text>
           </View>
         }
         ListEmptyComponent={
           <Text style={styles.emptyText}>
-            Aucun point de collecte en cache pour l’instant. Tire vers le bas pour réessayer.
+            {t(
+              'Aucun point de collecte en cache pour l’instant. Tire vers le bas pour réessayer.',
+              'No collection points cached yet. Pull down to try again.',
+            )}
           </Text>
         }
         renderItem={({ item }) => (
@@ -129,13 +140,16 @@ export default function RessourcesScreen() {
               {item.latestStatus ? (
                 <Chip label={STATUS_LABEL[item.latestStatus]} tone={STATUS_TONE[item.latestStatus]} />
               ) : (
-                <Chip label="Pas encore signalé" tone="neutral" />
+                <Chip label={t('Pas encore signalé', 'Not reported yet')} tone="neutral" />
               )}
             </View>
             {item.neighborhood ? <Text style={styles.pointMeta}>{item.neighborhood}</Text> : null}
             {item.recentReportCount > 1 ? (
               <Text style={styles.pointMeta}>
-                {item.recentReportCount} signalements cette semaine
+                {t(
+                  `${item.recentReportCount} signalements cette semaine`,
+                  `${item.recentReportCount} reports this week`,
+                )}
               </Text>
             ) : null}
             {item.latestNote ? <Text style={styles.pointNote}>« {item.latestNote} »</Text> : null}
@@ -143,12 +157,14 @@ export default function RessourcesScreen() {
               <View style={styles.pendingRow}>
                 <Icon name="wifioff" size={12} color={colors.muted} />
                 <Text style={styles.pendingText}>
-                  {item.pendingCount} signalement{item.pendingCount > 1 ? 's' : ''} en attente de
-                  synchro
+                  {t(
+                    `${item.pendingCount} signalement${item.pendingCount > 1 ? 's' : ''} en attente de synchro`,
+                    `${item.pendingCount} report${item.pendingCount > 1 ? 's' : ''} pending sync`,
+                  )}
                 </Text>
               </View>
             ) : null}
-            <Button label="Signaler" variant="secondary" onPress={() => setSelectedPoint(item)} />
+            <Button label={t('Signaler', 'Report')} variant="secondary" onPress={() => setSelectedPoint(item)} />
           </Card>
         )}
       />

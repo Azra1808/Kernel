@@ -279,22 +279,37 @@ jobs:
         working-directory: app
         env:
           CI: true
+          # Nécessaire ici : expo prebuild/Metro compile ces valeurs en
+          # dur dans le bundle JS au moment du build, pas à l'exécution.
+          # Sans elles, l'APK tourne indéfiniment en mode démo ("Supabase
+          # non configuré"), même si le serveur est correctement configuré.
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
         run: npx expo prebuild --platform android --no-install
 
       - name: Set up Gradle
         if: steps.apk.outputs.ready == 'true'
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Build installable debug APK
+      - name: Build installable release APK
         if: steps.apk.outputs.ready == 'true'
         working-directory: app/android
         shell: bash
+        env:
+          # Un APK "debug" classique (assembleDebug) n'embarque pas le bundle JS :
+          # il attend un serveur Metro accessible, donc il ne fonctionne pas une
+          # fois installé depuis un artefact GitHub Actions sur un téléphone.
+          # Le variant "release" embarque le JS et reste installable sans clé
+          # réelle puisque le buildType release utilise signingConfigs.debug
+          # par défaut dans un projet généré par expo prebuild.
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
         run: |
           set -euo pipefail
           chmod +x gradlew
-          ./gradlew --no-daemon :app:assembleDebug
+          ./gradlew --no-daemon :app:assembleRelease
           mkdir -p ../artifacts
-          cp app/build/outputs/apk/debug/app-debug.apk "../artifacts/kernel-${GITHUB_SHA}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "../artifacts/kernel-${GITHUB_SHA}.apk"
 
       - name: Upload APK
         if: steps.apk.outputs.ready == 'true'
