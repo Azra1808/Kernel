@@ -6,11 +6,26 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
-// Mock officiel de Reanimated pour Jest (utilisé par AnimatedPressable,
-// donc par Button/Card). Sans ce mock, Jest tente de faire tourner les
-// animations pour de vrai, ce qui ralentit énormément les tests jusqu'au
-// timeout, voire les bloque.
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+// Mock maison de Reanimated pour Jest (utilisé par AnimatedPressable,
+// donc par Button/Card/RootNavigator). Le mock OFFICIEL du package
+// (react-native-reanimated/mock) tente, dans cette version, de charger
+// les bindings natifs de react-native-worklets — inexistants sous Jest,
+// ce qui fait planter toute la suite de tests. On mocke donc uniquement
+// les 4 API réellement utilisées dans le code (useSharedValue,
+// useAnimatedStyle, withSpring, Animated.View), sans toucher au vrai
+// module — largement suffisant pour ce que fait AnimatedPressable.
+jest.mock('react-native-reanimated', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+
+  return {
+    __esModule: true,
+    default: { View },
+    useSharedValue: (initial) => ({ value: initial }),
+    useAnimatedStyle: (factory) => factory(),
+    withSpring: (toValue) => toValue,
+  };
+});
 
 // expo-haptics appelle du code natif (vibration) qui n'existe pas non
 // plus en environnement de test.

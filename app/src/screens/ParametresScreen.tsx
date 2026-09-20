@@ -1,6 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { AnimatedPressable } from '../components/AnimatedPressable';
 import { ACCENT_THEMES, ColorThemeId, Mode, radius, type Palette } from '../theme/palettes';
 import { TextSize, usePreferences } from '../theme/PreferencesContext';
@@ -12,6 +12,7 @@ import { Chip } from '../components/Chip';
 import type { Lang } from '../lib/assistant/types';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import { signOut, useAuthState } from '../lib/auth';
+import { useProfile } from '../lib/profile';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Parametres'>;
 
@@ -46,6 +47,28 @@ export default function ParametresScreen({ navigation }: Props) {
   const styles = useMemo(() => createStyles(colors, fontScale), [colors, fontScale]);
   const t = useCallback((fr: string, en: string) => (language === 'fr' ? fr : en), [language]);
   const auth = useAuthState();
+  const { profile, updateVillage } = useProfile();
+  const [villageDraft, setVillageDraft] = useState('');
+  const [villageSaved, setVillageSaved] = useState(false);
+
+  useEffect(() => {
+    // Pattern voulu : initialise le champ de saisie éditable une fois le
+    // profil chargé depuis Supabase/cache (asynchrone) — l'utilisateur
+    // peut ensuite le modifier librement, ce n'est pas un état dérivé
+    // pur qu'on pourrait calculer directement au rendu.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (profile?.village) setVillageDraft(profile.village);
+  }, [profile?.village]);
+
+  const handleSaveVillage = useCallback(async () => {
+    const trimmed = villageDraft.trim();
+    if (!trimmed) return;
+    const ok = await updateVillage(trimmed);
+    if (ok) {
+      setVillageSaved(true);
+      setTimeout(() => setVillageSaved(false), 2000);
+    }
+  }, [villageDraft, updateVillage]);
 
   return (
     <View style={styles.container}>
@@ -152,6 +175,31 @@ export default function ParametresScreen({ navigation }: Props) {
                 <Button label={t('Se déconnecter', 'Sign out')} onPress={() => signOut()} variant="ghost" />
               </>
             )}
+          </Card>
+        </Section>
+
+        {/* --- Village --- */}
+        <Section title={t('Village / quartier', 'Village / neighborhood')} styles={styles}>
+          <Card tone="paper" style={styles.accountCard}>
+            <Text style={styles.hint}>
+              {t(
+                "Utilisé pour regrouper les signaux du dashboard Écosystème par zone. Nécessaire pour que tes diagnostics de plantes se synchronisent correctement.",
+                'Used to group Ecosystem dashboard signals by area. Required for your plant diagnoses to sync correctly.'
+              )}
+            </Text>
+            <TextInput
+              style={styles.villageInput}
+              value={villageDraft}
+              onChangeText={setVillageDraft}
+              placeholder={t('Ex. Sabalibougou', 'Ex. Sabalibougou')}
+              placeholderTextColor={colors.muted}
+            />
+            <Button
+              label={villageSaved ? t('Enregistré ✓', 'Saved ✓') : t('Enregistrer', 'Save')}
+              onPress={handleSaveVillage}
+              variant="secondary"
+              disabled={!villageDraft.trim()}
+            />
           </Card>
         </Section>
 
@@ -327,6 +375,17 @@ function createStyles(colors: Palette, fontScale: number) {
       color: colors.ink,
       flex: 1,
       flexWrap: 'wrap',
+    },
+    villageInput: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: radius.md,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontFamily: fonts.body,
+      fontSize: fontSize.base * fontScale,
+      color: colors.ink,
+      backgroundColor: colors.paperWarm,
     },
     previewRow: {
       flexDirection: 'row',
