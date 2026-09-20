@@ -24,7 +24,7 @@ type Preferences = {
 const DEFAULT_PREFS: Preferences = {
   mode: 'clair',
   colorTheme: 'argile',
-  language: 'fr',
+  language: 'en',
   textSize: 'normal',
 };
 
